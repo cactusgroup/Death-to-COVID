@@ -7,18 +7,19 @@ Created on Sat Oct  2 21:43:56 2021
 
 import pygame
 
+# constants
 background_color = (255,255,255)
-(width, height) = (300, 200)
+(width, height) = (500 + 2*20, 500 + 3*20 )
 
+# set up display
 screen = pygame.display.set_mode((width,height))
-pygame.display.set_caption('Tutorial 1')
+pygame.display.set_caption('COVID Model')
 screen.fill(background_color)
 
+#
 pygame.display.flip()
 
-running = True
-while running:
+while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            running = False
             pygame.quit()
