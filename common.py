@@ -6,10 +6,15 @@ Created on Sat Oct  2 21:43:56 2021
 """
 
 import pygame
+import pygame.freetype
+
+# initialize library
+pygame.init()
 
 # constants
 background_color = (255,255,255)
 (W, H) = (500 + 2*20, 500 + 3*20 + 10)
+GAME_FONT = pygame.freetype.SysFont("Times New Roman", 12, bold=True)
 
 # set up display
 screen = pygame.display.set_mode((W, H))
@@ -40,7 +45,7 @@ def draw_grid():
         bottom += 10
         
     # Hospital label
-    """I don't know how to do this."""
+    GAME_FONT.render_to(screen, (20, 530 - 2), "Hospital", (0,0,0))
     
     # hospital grid
     # vertical lines
