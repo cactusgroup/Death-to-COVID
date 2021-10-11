@@ -7,6 +7,7 @@ Created on Sat Oct  2 21:43:56 2021
 
 import pygame
 import pygame.freetype
+from Agent import *
 
 # initialize library
 pygame.init()
@@ -19,6 +20,10 @@ GAME_FONT = pygame.freetype.SysFont("Times New Roman", 12, bold=True)
 # set up display
 screen = pygame.display.set_mode((W, H))
 pygame.display.set_caption('COVID Model')
+
+# try an Agent
+agent = Agent()
+agent.expose()
 
 def draw_grid():
     # main grid
@@ -74,7 +79,7 @@ while True:
     # draw background
     screen.fill(background_color)
     
-    # draw grid
+    # draw grids
     draw_grid()
     
     
