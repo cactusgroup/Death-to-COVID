@@ -22,7 +22,7 @@ screen = pygame.display.set_mode((W, H))
 pygame.display.set_caption('COVID Model')
 
 # try an Agent
-agent = Agent()
+agent = Agent(vaccinated = False, masked = False)
 agent.expose()
 
 def draw_grid():
