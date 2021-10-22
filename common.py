@@ -7,6 +7,7 @@ Created on Sat Oct  2 21:43:56 2021
 
 import pygame
 import pygame.freetype
+import random
 from Agent import *
 
 # initialize library
@@ -21,9 +22,24 @@ GAME_FONT = pygame.freetype.SysFont("Times New Roman", 12, bold=True)
 screen = pygame.display.set_mode((W, H))
 pygame.display.set_caption('COVID Model')
 
-# try an Agent
-agent = Agent(vaccinated = False, masked = False)
-agent.expose()
+# initialize all 2500 cell locations in grid
+grid = { (i,j):None for i in range(50) for j in range(50) }
+
+# initialize agents (700 for NY, 762 for FL)
+NUM_AGENTS = 500
+agents = {}
+
+for i in range(NUM_AGENTS): # this will break into multiple for loops
+    loc = (random.randint(0, 49), random.randint(0, 49))
+    while loc in agents:
+        loc = (random.randint(0, 49), random.randint(0, 49))
+    agents[loc] = Agent(age=random.randint(0,1),
+                        status=random.randint(0,4),
+                        vaccinated=random.randint(0,2),
+                        masked=random.choice([True,
+                                              lambda (): return random.random(),
+                                              False]),
+                        direction=random.randint(1,8))
 
 def draw_grid():
     # main grid

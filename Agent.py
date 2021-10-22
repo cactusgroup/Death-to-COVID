@@ -9,15 +9,29 @@ Created on Sun Oct 10 21:43:46 2021
 import random
 
 class Agent: 
-    def __init__(self, vaccinated, masked):
+    def __init__(self, age, status, vaccinated, masked, direction):
         """
+        age can be 0 or 1 for 'old' or 'young'
+        
+        status can be 0 through 4 for 'healthy', 'ignorant', 'contagious',
+        'infected', and 'deceased'
+        
         vaccinated can be 0 or False for unvaccinated, 1 for 1st dose, and 2.
         
         masked can be True for always, a random function polled on expose(),
         or False for never
+        
+        direction can be 1 through 8, for NW through W clockwise, that is,
+        1 2 3
+        8 x 4
+        7 6 5, with x the agent's current position.
         """
+        self.age = age
+        self.status = status
         self.vaccinated = vaccinated
         self.masked = masked
+        self.direction = direction
+        
         self.random = random.Random(random.random())
 
     def expose(self):
