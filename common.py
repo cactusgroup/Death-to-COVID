@@ -41,7 +41,7 @@ for i in range(NUM_AGENTS): # this will break into multiple for loops
                                               False]),
                         direction=random.randint(1,8))
 
-def draw_grid():
+def draw_grids():
     # main grid
     # vertical lines
     left = 20
@@ -96,7 +96,7 @@ while True:
     screen.fill(background_color)
     
     # draw grids
-    draw_grid()
+    draw_grids()
     
     
     pygame.display.flip()
