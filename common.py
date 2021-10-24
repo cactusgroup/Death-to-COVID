@@ -53,7 +53,7 @@ def draw_grids():
                          start_pos=(left, top), end_pos=(right, bottom))
         left += 10
         right += 10
-
+        
     # horizontal lines
     left = 20
     top = 20
