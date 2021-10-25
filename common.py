@@ -13,10 +13,25 @@ from Agent import *
 # initialize library
 pygame.init()
 
+# initialize game clock
+clock = pygame.time.Clock()
+
 # constants
-background_color = (255,255,255)
+BACKGROUND_COLOR = (255,255,255)
 (W, H) = (500 + 2*20, 500 + 3*20 + 10)
 GAME_FONT = pygame.freetype.SysFont("Times New Roman", 12, bold=True)
+
+old_healthy = pygame.image.load("./img/old_healthy.png")
+old_ignorant = pygame.image.load("./img/old_ignorant.png")
+old_contagious = pygame.image.load("./img/old_contagious.png")
+old_infected = pygame.image.load("./img/old_infected.png")
+old_deceased = pygame.image.load("./img/old_deceased.png")
+
+young_healthy = pygame.image.load("./img/young_healthy.png")
+young_ignorant = pygame.image.load("./img/young_ignorant.png")
+young_contagious = pygame.image.load("./img/young_contagious.png")
+young_infected = pygame.image.load("./img/young_infected.png")
+young_deceased = pygame.image.load("./img/young_deceased.png")
 
 # set up display
 screen = pygame.display.set_mode((W, H))
@@ -37,7 +52,7 @@ for i in range(NUM_AGENTS): # this will break into multiple for loops
                         status=random.randint(0,4),
                         vaccinated=random.randint(0,2),
                         masked=random.choice([True,
-                                              lambda (): return random.random(),
+                                              lambda: random.random(),
                                               False]),
                         direction=random.randint(1,8))
 
@@ -91,16 +106,47 @@ def draw_grids():
         top += 10
         bottom += 10
 
+def draw_agents():
+    img = ''
+    for loc in agents:
+        if (agents[loc].age == 0): # old
+            if (agents[loc].status == 0): # healthy
+                img = old_healthy
+            elif (agents[loc].status == 1): # ignorant
+                img = old_ignorant
+            elif (agents[loc].status == 2): # contagious
+                img = old_contagious
+            elif (agents[loc].status == 3): # infected
+                img = old_infected
+            elif (agents[loc].status == 4): # deceased
+                img = old_deceased
+        elif (agents[loc].age == 1): # young
+            if (agents[loc].status == 0): # healthy
+                img = young_healthy
+            elif (agents[loc].status == 1): # ignorant
+                img = young_ignorant
+            elif (agents[loc].status == 2): # contagious
+                img = young_contagious
+            elif (agents[loc].status == 3): # infected
+                img = young_infected
+            elif (agents[loc].status == 4): # deceased
+                img = young_deceased
+        
+        screen.blit(img, (20 + loc[0]*10, 20 + loc[1]*10))
+
 while True:
     # draw background
-    screen.fill(background_color)
+    screen.fill(BACKGROUND_COLOR)
     
     # draw grids
     draw_grids()
     
+    draw_agents()
     
     pygame.display.flip()
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
+            
+    clock.tick(30)

@@ -62,3 +62,6 @@ class Agent:
         elif callable(self.masked):
             if self.masked() and chance > 500:
                 chance -= 0.5 * (chance - 500)
+    
+    def update():
+        pass
