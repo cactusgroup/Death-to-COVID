@@ -42,7 +42,8 @@ grid = { (i,j):None for i in range(50) for j in range(50) }
 
 # initialize agents (700 for NY, 762 for FL)
 NUM_AGENTS = 500
-agents = {}
+agents = {} # {(row, col): Agent}
+hospital = {} # {col: Agent}
 
 for i in range(NUM_AGENTS): # this will break into multiple for loops
     loc = (random.randint(0, 49), random.randint(0, 49))
@@ -134,17 +135,49 @@ def draw_agents():
         
         screen.blit(img, (20 + loc[0]*10, 20 + loc[1]*10))
 
+def draw_hospital():
+    img = ''
+    for col in hospital:
+        if (hospital[col].age == 0): # old
+            if (hospital[col].status == 0): # healthy
+                img = old_healthy
+            elif (hospital[col].status == 1): # ignorant
+                img = old_ignorant
+            elif (hospital[col].status == 2): # contagious
+                img = old_contagious
+            elif (hospital[col].status == 3): # infected
+                img = old_infected
+            elif (hospital[col].status == 4): # deceased
+                img = old_deceased
+        elif (hospital[col].age == 1): # young
+            if (hospital[col].status == 0): # healthy
+                img = young_healthy
+            elif (hospital[col].status == 1): # ignorant
+                img = young_ignorant
+            elif (hospital[col].status == 2): # contagious
+                img = young_contagious
+            elif (hospital[col].status == 3): # infected
+                img = young_infected
+            elif (hospital[col].status == 4): # deceased
+                img = young_deceased
+        
+        screen.blit(img, (20 + col*10, 20 + 500 + 20))
+
 while True:
     # draw background
     screen.fill(BACKGROUND_COLOR)
     
+    # Draw
     # draw grids
     draw_grids()
-    
+    # draw agents (on main grid)
     draw_agents()
+    # draw hospital
+    draw_hospital()
     
     pygame.display.flip()
     
+    # Process
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
