@@ -39,29 +39,35 @@ class Agent:
         expose this agent to COVID-19
         mask-wearing and vaccination determine whether this agent is infected
         """
-        chance = self.random.random() * 1000
-        
-        # 81% reduction in risk of infection by getting one dose
-        # 91% reduction by getting two doses
-        # https://www.cdc.gov/media/releases/2021/p0607-mrna-reduce-risks.html
-        if self.vaccinated == 1:
+        if self.status == 0: # healthy
+            chance = self.random.random() * 1000
+            
+            # 81% reduction in risk of infection by getting one dose
+            # 91% reduction by getting two doses
+            # https://www.cdc.gov/media/releases/2021/p0607-mrna-reduce-risks.html
+            if self.vaccinated == 1:
+                if chance > 500:
+                    chance -= 0.91 * (chance - 500)
+            elif self.vaccinated == 2:
+                if chance > 500:
+                    chance -= 0.81 * (chance - 500)
+            
+            # 70% reduction in risk of infection by wearing a mask for health
+            # care workers.
+            # There is a smaller reduction for people not wearing masks all the
+            # time, but it is unknown how much smaller the reduction is.
+            # https://pubmed.ncbi.nlm.nih.gov/33347937/
+            if self.masked and not callable(self.masked):
+                if chance > 500:
+                    chance -= 0.7 * (chance - 500)
+            elif callable(self.masked):
+                if self.masked() and chance > 500:
+                    chance -= 0.5 * (chance - 500)
+            
             if chance > 500:
-                chance -= 0.91 * (chance - 500)
-        elif self.vaccinated == 2:
-            if chance > 500:
-                chance -= 0.81 * (chance - 500)
-        
-        # 70% reduction in risk of infection by wearing a mask for health
-        # care workers.
-        # There is a smaller reduction for people not wearing masks all the
-        # time, but it is unknown how much smaller the reduction is.
-        # https://pubmed.ncbi.nlm.nih.gov/33347937/
-        if self.masked and not callable(self.masked):
-            if chance > 500:
-                chance -= 0.7 * (chance - 500)
-        elif callable(self.masked):
-            if self.masked() and chance > 500:
-                chance -= 0.5 * (chance - 500)
+                self.status = 1 # ignorant
     
     def update():
-        pass
+        """
+        healthy status can transition to ignorant status upon successful expose()
+        """
