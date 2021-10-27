@@ -53,7 +53,8 @@ for i in range(NUM_AGENTS): # this will break into multiple for loops
                         status=random.randint(0,4),
                         vaccinated=random.randint(0,2),
                         masked=random.choice([True,
-                                              lambda: random.random(),
+                                              # 0.3 for FL, 0.5 for NY
+                                              lambda: random.random() < 0.35,
                                               False]),
                         direction=random.randint(1,8))
 
