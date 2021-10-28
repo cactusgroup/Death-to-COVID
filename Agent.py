@@ -142,10 +142,10 @@ class Agent:
                     self.infected_counter = 4 * 24
         # low_severity
         elif self.status == 4:
-            
+            pass
         # high_severity
         elif self.status == 5:
-            
+            pass
         # deceased
         else:
             self.status = 6

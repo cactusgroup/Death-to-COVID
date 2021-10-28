@@ -16,11 +16,21 @@ pygame.init()
 # initialize game clock
 clock = pygame.time.Clock()
 
-# constants
+# Constants
+# Colors
 BACKGROUND_COLOR = (255,255,255)
+black = (0,0,0)
+gray = (128,128,128)
+light_gray = (144,144,144)
+dark_gray = (110,110,110)
+
+# Screen dimensions
 (W, H) = (500 + 2*20, 500 + 3*20 + 10)
+
+# Font for game text
 GAME_FONT = pygame.freetype.SysFont("Times New Roman", 12, bold=True)
 
+# Images
 old_healthy = pygame.image.load("./img/old_healthy.png")
 old_ignorant = pygame.image.load("./img/old_ignorant.png")
 old_contagious = pygame.image.load("./img/old_contagious.png")
@@ -83,7 +93,7 @@ def draw_grids():
         bottom += 10
         
     # Hospital label
-    GAME_FONT.render_to(screen, (20, 530 - 2), "Hospital", (0,0,0))
+    GAME_FONT.render_to(screen, (20, 20 + 500 + 8), "Hospital", (0,0,0))
     
     # hospital grid
     # vertical lines
@@ -176,11 +186,29 @@ while True:
     # draw hospital
     draw_hospital()
     
-    pygame.display.flip()
-    
     # Process
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
-            
+        else:
+            pass
+    
+    # mouse[0] = x coordinate
+    mouse = pygame.mouse.get_pos()
+    
+    # Save    
+    if 100 < mouse[0] < 190 and (20 + 500 + 10) < mouse[1] < (20 + 500 + 30):
+        pygame.draw.rect(screen, light_gray, (100,530,90,20))
+    else:
+        pygame.draw.rect(screen, gray, (100,530,90,20))
+    
+    # Load
+    
+    # Start
+    
+    # Stop
+    
+    
+    pygame.display.flip()
+    
     clock.tick(30)
