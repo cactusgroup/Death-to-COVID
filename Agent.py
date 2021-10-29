@@ -94,7 +94,7 @@ class Agent:
             if chance > 300:
                 self.status = 1 # ignorant
     
-    def update():
+    def update(self):
         """
         healthy status can transition to ignorant status upon successful expose()
         
@@ -127,8 +127,8 @@ class Agent:
                     deceasedUpper = 300
                     infectedUpper = 680
                 elif self.vaccinated == 2:
-                    deceasedUpper = 200
-                    infectedUpper = 550
+                    deceasedUpper = 100
+                    infectedUpper = 500
                     
                 # deceased
                 if chance < deceasedUpper:
