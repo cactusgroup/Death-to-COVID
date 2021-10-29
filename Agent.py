@@ -94,12 +94,14 @@ class Agent:
             if chance > 300:
                 self.status = 1 # ignorant
     
-    def update(self):
+    def update(self, sim_time):
         """
         healthy status can transition to ignorant status upon successful expose()
         
         So we start the update calls in ignorant, contagious, infected,
         low_severity, high_severity, or deceased statuses.
+        
+        sim_time is the current simulation time in the 15-minute time units
         """
         
         # ignorant
@@ -142,7 +144,7 @@ class Agent:
                     self.infected_counter = 4 * 24
         # low_severity
         elif self.status == 4:
-            pass
+            
         # high_severity
         elif self.status == 5:
             pass
