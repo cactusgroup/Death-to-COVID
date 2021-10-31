@@ -10,63 +10,104 @@ import pygame.freetype
 import random
 from Agent import *
 
-# initialize library
+# Initialize library
 pygame.init()
-
-# initialize game clock
+# Initialize game clock
 clock = pygame.time.Clock()
 
 # Constants
-# Colors
+# colors
 BACKGROUND_COLOR = (255,255,255)
 black = (0,0,0)
 gray = (128,128,128)
 light_gray = (144,144,144)
 dark_gray = (110,110,110)
 
-# Screen dimensions
+# screen dimensions
 (W, H) = (500 + 2*20, 500 + 3*20 + 10)
 
-# Font for game text
+# font for game text
 GAME_FONT = pygame.freetype.SysFont("Times New Roman", 12, bold=True)
 
-# Images
-old_healthy = pygame.image.load("./img/old_healthy.png")
-old_ignorant = pygame.image.load("./img/old_ignorant.png")
-old_contagious = pygame.image.load("./img/old_contagious.png")
-old_infected = pygame.image.load("./img/old_infected.png")
-old_deceased = pygame.image.load("./img/old_deceased.png")
+# images
+path = {i : './img/' + i + '.png' for i in [
+    'old_healthy', 'old_ignorant', 'old_contagious', 'old_infected', 'old_deceased',
+    'young_healthy', 'young_ignorant', 'young_contagious', 'young_infected', 'young_deceased']}
 
-young_healthy = pygame.image.load("./img/young_healthy.png")
-young_ignorant = pygame.image.load("./img/young_ignorant.png")
-young_contagious = pygame.image.load("./img/young_contagious.png")
-young_infected = pygame.image.load("./img/young_infected.png")
-young_deceased = pygame.image.load("./img/young_deceased.png")
+old_healthy = pygame.image.load(path['old_healthy'])
+old_ignorant = pygame.image.load(path['old_ignorant'])
+old_contagious = pygame.image.load(path['old_contagious'])
+old_infected = pygame.image.load(path["old_infected"])
+old_deceased = pygame.image.load(path["old_deceased"])
 
-# set up display
+young_healthy = pygame.image.load(path["young_healthy"])
+young_ignorant = pygame.image.load(path["young_ignorant"])
+young_contagious = pygame.image.load(path["young_contagious"])
+young_infected = pygame.image.load(path["young_infected"])
+young_deceased = pygame.image.load(path["young_deceased"])
+
+# agent parameter dicts
+AGE = { "old": 0, "young": 1 }
+STATUS = { 'healthy': 0, "ignorant": 1, 'contagious': 2, 'infected': 3,
+           'low_severity': 4, 'high_severity': 5, 'deceased': 6 }
+
+# Code
+# Set up display
 screen = pygame.display.set_mode((W, H))
 pygame.display.set_caption('COVID Model')
 
 # initialize all 2500 cell locations in grid
 grid = { (i,j):None for i in range(50) for j in range(50) }
 
-# initialize agents (700 for NY, 762 for FL)
-NUM_AGENTS = 500
+# Initialize agents (700 for NY, 762 for FL)
+NUM_OLD = 255
+NUM_YOUNG = 245
 agents = {} # {(row, col): Agent}
 hospital = {} # {col: Agent}
 
-for i in range(NUM_AGENTS): # this will break into multiple for loops
+# old
+for i in range(NUM_OLD):
     loc = (random.randint(0, 49), random.randint(0, 49))
     while loc in agents:
         loc = (random.randint(0, 49), random.randint(0, 49))
-    agents[loc] = Agent(age=random.randint(0,1),
-                        status=random.randint(0,4),
-                        vaccinated=random.randint(0,2),
-                        masked=random.choice([True,
-                                              # 0.3 for FL, 0.5 for NY
-                                              lambda: random.random() < 0.35,
-                                              False]),
+    agents[loc] = Agent(age=AGE['old'],
+                        status=STATUS['healthy'],
+                        vaccinated=0,
+                        masked=False,
                         direction=random.randint(1,8))
+
+# young
+for i in range(NUM_YOUNG):
+    loc = (random.randint(0, 49), random.randint(0, 49))
+    while loc in agents:
+        loc = (random.randint(0, 49), random.randint(0, 49))
+    agents[loc] = Agent(age=AGE['young'],
+                        status=STATUS['healthy'],
+                        vaccinated=0,
+                        masked=False,
+                        direction=random.randint(1,8))
+
+# ignorant
+old = 0; young = 0
+while old < 1 or young < 1:
+    k, v = random.choice([(k, v) for k, v in agents.items()])
+    if (v.age == AGE['old'] and old < 1):
+        v.status = STATUS['ignorant']
+        old = 1
+    elif (v.age == AGE['young'] and young < 1):
+        v.status = STATUS['ignorant']
+        young = 1
+
+# partially-masking
+old = 0; young = 0
+while old < 35 or young < 95:
+    k, v = random.choice([(k, v) for k, v in agents.items()])
+    if (v.age == AGE['old'] and old < 35):
+        v.masked = lambda: random.random() < 0.35
+        old += 1
+    elif (v.age == AGE['young'] and young < 95):
+        v.masked = lambda: random.random() < 0.35
+        young += 1
 
 def draw_grids():
     # main grid
