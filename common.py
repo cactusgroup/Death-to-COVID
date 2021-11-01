@@ -42,23 +42,36 @@ GAME_FONT = pygame.freetype.SysFont("Times New Roman", 12, bold=True)
 
 # images
 path = {i : './img/' + i + '.png' for i in [
-    'old_healthy', 'old_ignorant', 'old_contagious', 'old_infected',
-    'old_low_severity', 'old_high_severity',
+    'old_healthy',
+    'old_ignorant',
+    'old_contagious',
+    'old_infected',
+    'old_low_severity',
+    'old_high_severity',
     'old_deceased',
-    'young_healthy', 'young_ignorant', 'young_contagious', 'young_infected',
-    'young_low_severity', 'young_high_severity',
+    
+    'young_healthy',
+    'young_ignorant',
+    'young_contagious',
+    'young_infected',
+    'young_low_severity',
+    'young_high_severity',
     'young_deceased']}
 
 old_healthy = pygame.image.load(path['old_healthy'])
 old_ignorant = pygame.image.load(path['old_ignorant'])
 old_contagious = pygame.image.load(path['old_contagious'])
 old_infected = pygame.image.load(path["old_infected"])
+old_low_severity = pygame.image.load(path['old_low_severity'])
+old_high_severity = pygame.image.load(path['old_high_severity'])
 old_deceased = pygame.image.load(path["old_deceased"])
 
 young_healthy = pygame.image.load(path["young_healthy"])
 young_ignorant = pygame.image.load(path["young_ignorant"])
 young_contagious = pygame.image.load(path["young_contagious"])
 young_infected = pygame.image.load(path["young_infected"])
+young_low_severity = pygame.image.load(path['young_low_severity'])
+young_high_severity = pygame.image.load(path['young_high_severity'])
 young_deceased = pygame.image.load(path["young_deceased"])
 
 # Code
@@ -111,6 +124,7 @@ while old < 1 or young < 1:
 # partially-masking
 def masked():
     return random.random() < 0.35
+
 old = 0; young = 0
 while old < 35 or young < 95:
     k, v = random.choice([(k, v) for k, v in agents.items()])
@@ -173,59 +187,25 @@ def draw_grids():
         bottom += 10
 
 def draw_agents():
+    images = [[old_healthy, old_ignorant, old_contagious, old_infected,
+               old_low_severity, old_high_severity, old_deceased],
+              [young_healthy, young_ignorant, young_contagious,
+               young_infected, young_low_severity, young_high_severity,
+               young_deceased]]
     img = ''
-    for loc in agents:
-        if (agents[loc].age == 0): # old
-            if (agents[loc].status == 0): # healthy
-                img = old_healthy
-            elif (agents[loc].status == 1): # ignorant
-                img = old_ignorant
-            elif (agents[loc].status == 2): # contagious
-                img = old_contagious
-            elif (agents[loc].status == 3): # infected
-                img = old_infected
-            elif (agents[loc].status == 4): # deceased
-                img = old_deceased
-        elif (agents[loc].age == 1): # young
-            if (agents[loc].status == 0): # healthy
-                img = young_healthy
-            elif (agents[loc].status == 1): # ignorant
-                img = young_ignorant
-            elif (agents[loc].status == 2): # contagious
-                img = young_contagious
-            elif (agents[loc].status == 3): # infected
-                img = young_infected
-            elif (agents[loc].status == 4): # deceased
-                img = young_deceased
-        
+    for loc, agent in agents.items():
+        img = images[agent.age][agent.status]
         screen.blit(img, (20 + loc[0]*10, 20 + loc[1]*10))
 
 def draw_hospital():
+    images = [[old_healthy, old_ignorant, old_contagious, old_infected,
+               old_low_severity, old_high_severity, old_deceased],
+              [young_healthy, young_ignorant, young_contagious,
+               young_infected, young_low_severity, young_high_severity,
+               young_deceased]]
     img = ''
-    for col in hospital:
-        if (hospital[col].age == 0): # old
-            if (hospital[col].status == 0): # healthy
-                img = old_healthy
-            elif (hospital[col].status == 1): # ignorant
-                img = old_ignorant
-            elif (hospital[col].status == 2): # contagious
-                img = old_contagious
-            elif (hospital[col].status == 3): # infected
-                img = old_infected
-            elif (hospital[col].status == 4): # deceased
-                img = old_deceased
-        elif (hospital[col].age == 1): # young
-            if (hospital[col].status == 0): # healthy
-                img = young_healthy
-            elif (hospital[col].status == 1): # ignorant
-                img = young_ignorant
-            elif (hospital[col].status == 2): # contagious
-                img = young_contagious
-            elif (hospital[col].status == 3): # infected
-                img = young_infected
-            elif (hospital[col].status == 4): # deceased
-                img = young_deceased
-        
+    for col, agent in hospital.items():
+        img = images[agent.age][agent.status]
         screen.blit(img, (20 + col*10, 20 + 500 + 20))
 
 # Animation control functions
