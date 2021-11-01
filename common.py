@@ -7,13 +7,23 @@ Created on Sat Oct  2 21:43:56 2021
 
 import pygame
 import pygame.freetype
+
 import random
-from Agent import *
+
+from tkinter import Tk
+from tkinter.filedialog import askopenfile, asksaveasfile
+
+import pickle
+
+from Agent import Agent
+
 
 # Initialize library
 pygame.init()
 # Initialize game clock
 clock = pygame.time.Clock()
+# Initialize Tk graphics for file dialogs
+Tk().withdraw()
 
 # Constants
 # colors
@@ -31,8 +41,12 @@ GAME_FONT = pygame.freetype.SysFont("Times New Roman", 12, bold=True)
 
 # images
 path = {i : './img/' + i + '.png' for i in [
-    'old_healthy', 'old_ignorant', 'old_contagious', 'old_infected', 'old_deceased',
-    'young_healthy', 'young_ignorant', 'young_contagious', 'young_infected', 'young_deceased']}
+    'old_healthy', 'old_ignorant', 'old_contagious', 'old_infected',
+    'old_low_severity', 'old_high_severity',
+    'old_deceased',
+    'young_healthy', 'young_ignorant', 'young_contagious', 'young_infected',
+    'young_low_severity', 'young_high_severity',
+    'young_deceased']}
 
 old_healthy = pygame.image.load(path['old_healthy'])
 old_ignorant = pygame.image.load(path['old_ignorant'])
@@ -109,6 +123,7 @@ while old < 35 or young < 95:
         v.masked = lambda: random.random() < 0.35
         young += 1
 
+# Draw functions
 def draw_grids():
     # main grid
     # vertical lines
@@ -215,6 +230,34 @@ def draw_hospital():
         
         screen.blit(img, (20 + col*10, 20 + 500 + 20))
 
+# Animation control functions
+def make_button(msg, x):
+    y = 20 + 500 + 10
+    w = 90
+    h = 20
+    if x < mouse[0] < x + w and y < mouse[1] < y + h:
+        if pygame.mouse.get_pressed()[0]:
+            pygame.draw.rect(screen, dark_gray, (x,y,w,h))
+        else:
+            pygame.draw.rect(screen, light_gray, (x,y,w,h))
+    else:
+        pygame.draw.rect(screen, gray, (x,y,w,h))
+    surf, bounds = GAME_FONT.render(msg, fgcolor=(0,0,0))
+    bounds.center = (x + w/2, y + h/2)
+    screen.blit(surf, bounds);
+
+def save():
+    file = asksaveasfile()
+    pickle.dump((agents,hospital), file)
+    file.close()
+    
+def load():
+    file = askopenfile()
+    agents, hospital = pickle.load(file)
+    file.close()
+
+# Game loop
+speed = 'fast'
 while True:
     # draw background
     screen.fill(BACKGROUND_COLOR)
@@ -227,29 +270,35 @@ while True:
     # draw hospital
     draw_hospital()
     
-    # Process
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-        else:
-            pass
-    
+    # draw button graphics (animation control)
     # mouse[0] = x coordinate
     mouse = pygame.mouse.get_pos()
     
     # Save    
-    if 100 < mouse[0] < 190 and (20 + 500 + 10) < mouse[1] < (20 + 500 + 30):
-        pygame.draw.rect(screen, light_gray, (100,530,90,20))
-    else:
-        pygame.draw.rect(screen, gray, (100,530,90,20))
-    
+    make_button('Save', x=100)
     # Load
+    make_button('Load', x=200)
+    # Fast
+    make_button('Fast', x=300)
+    # Slow
+    make_button('Slow', x=400)
     
-    # Start
+    # Process
+    # process events
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
     
-    # Stop
     
     
+    
+    # Finished Drawing
     pygame.display.flip()
     
-    clock.tick(30)
+    # Set Framerate
+    if speed=='fast':
+        clock.tick(30) # 18 minute simulation
+    elif speed=='slow':
+        clock.tick(1) # 9.6 hour simulation
+        
+        
