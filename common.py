@@ -237,6 +237,8 @@ def make_button(msg, x):
     y = 20 + 500 + 10
     w = 90
     h = 20
+    # mouse[0] = x coordinate
+    mouse = pygame.mouse.get_pos()
     if x < mouse[0] < x + w and y < mouse[1] < y + h:
         if pygame.mouse.get_pressed()[0]:
             pygame.draw.rect(screen, dark_gray, (x,y,w,h))
@@ -274,9 +276,6 @@ while True:
     draw_hospital()
     
     # draw button graphics (animation control)
-    # mouse[0] = x coordinate
-    mouse = pygame.mouse.get_pos()
-    
     # Save    
     make_button('Save', x=100)
     # Load
