@@ -16,6 +16,7 @@ from tkinter.filedialog import askopenfile, asksaveasfile
 import pickle
 
 from Agent import Agent
+from status_constants import AGE, STATUS
 
 
 # Initialize library
@@ -59,11 +60,6 @@ young_ignorant = pygame.image.load(path["young_ignorant"])
 young_contagious = pygame.image.load(path["young_contagious"])
 young_infected = pygame.image.load(path["young_infected"])
 young_deceased = pygame.image.load(path["young_deceased"])
-
-# agent parameter dicts
-AGE = { "old": 0, "young": 1 }
-STATUS = { 'healthy': 0, "ignorant": 1, 'contagious': 2, 'infected': 3,
-           'low_severity': 4, 'high_severity': 5, 'deceased': 6 }
 
 # Code
 # Set up display

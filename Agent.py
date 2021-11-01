@@ -8,6 +8,8 @@ Created on Sun Oct 10 21:43:46 2021
 
 import random
 
+from status_constants import AGE, STATUS
+
 class Agent: 
     def __init__(self, age, status, vaccinated, masked, direction):
         """
@@ -31,8 +33,14 @@ class Agent:
         
         contagious_counter is to count down the time that the Agent is contagious
         
-        infected_counter is used to count down each segment that the Agent is
+        infected_counter is used to count down each day that the Agent is
         infected but not contagious
+        
+        low_severity_counter is used to count down each day in a low-severity
+        hospital room
+        
+        high_severity counter is used to count down each day in a high-severity
+        hospital room
         """
         self.age = age
         self.status = status
@@ -52,6 +60,12 @@ class Agent:
         
         # check daily whether the infection continues, abates, or kills
         self.infected_counter = 4 * 24
+        
+        # check daily to see if the low-severity hospitalization stays, worsens, or heals
+        self.low_severity_counter = 4 * 24
+        
+        # check daily if the high-severity hospitalization stays, improves, or kills
+        self.high_severity_counter = 4 * 24
 
     def expose(self, otherAgent):
         """
@@ -106,48 +120,113 @@ class Agent:
         
         # ignorant
         if self.status == 1:
+            """
+            ignorant status always transitions to contagious status
+            """
             self.ignorant_counter -= 1
             if self.ignorant_counter == 0:
                 self.status = 2 # -> contagious
                 self.ignorant_counter = 4 * 24 * 5
         # contagious
         elif self.status == 2:
+            """
+            contagious status transitions to infected status,
+            but a contagious agent is also symptomatic and may be placed in a
+            hospital, outside of this update function
+            """
             self.contagious_counter -= 1
             if self.contagious_counter == 0:
                 self.status = 3 # -> infected
                 self.contagious_counter = 4 * 24 * 10
         # infected
         elif self.status == 3:
+            """
+            infected status branches into deceased, infected, or healthy
+            statuses with probabilities that change if the agent is vaccinated.
+            The deceased probability also changes depending on agent age.
+            https://www.cdc.gov/coronavirus/2019-ncov/covid-data/investigations-discovery/hospitalization-death-by-age.html
+            An infected agent is (maybe more) symptomatic, so they may also be
+            placed in a hospital, outside of this update function.
+            """
             self.infected_counter -= 1
             if self.infected_counter == 0:
                 chance = self.random.random() * 1000
                 
                 # set upper limits on chance of dying and staying infected
-                deceasedUpper = 500
+                deceasedUpper = 5 if self.age == 1 else 500
                 infectedUpper = 800
                 if self.vaccinated == 1:
-                    deceasedUpper = 300
+                    deceasedUpper = 2 if self.age == 1 else 200
                     infectedUpper = 680
                 elif self.vaccinated == 2:
-                    deceasedUpper = 100
-                    infectedUpper = 500
+                    deceasedUpper = 1 if self.age == 1 else 100
+                    infectedUpper = 600
                     
                 # deceased
                 if chance < deceasedUpper:
                     self.status = 6
                 # continue infected
                 elif deceasedUpper < chance < infectedUpper:
-                    self.infected_counter = 4 * 24
+                    pass
                 # abate
                 else:
                     self.status = 1
-                    self.infected_counter = 4 * 24
+                
+                self.infected_counter = 4 * 24
         # low_severity
         elif self.status == 4:
-            pass
+            """
+            low_severity status comes from contagious and infected statuses
+            from outside of this function. The agent will usually be young.
+            low_severity status branches into low_severity, high_severity, and
+            healthy, based on the results of a daily check-in.
+            """
+            self.low_severity_counter -= 1
+            if self.low_severity_counter == 0:
+                chance = self.random.random() * 1000
+                
+                # TODO: may need to change these values based on vaccination
+                low_severityUpper = 600 if self.age == 1 else 400
+                high_severityUpper = 700 if self.age == 1 else 800
+                
+                # continue low_severity
+                if chance < low_severityUpper:
+                    pass
+                # high_severity
+                elif low_severityUpper < chance < high_severityUpper:
+                    self.status = 5
+                # healthy
+                else:
+                    self.status = 1
+                
+                self.low_severity_counter = 4 * 24
         # high_severity
         elif self.status == 5:
-            pass
+            """
+            high_severity status comes from contagious and infected statuses
+            from outside of this function. The agent will usually be old.
+            high_severity status branches into high_severity, low_severity, and
+            deceased, based on the results of a daily check-in.
+            """
+            self.high_severity_counter -= 1
+            if self.high_severity_counter == 0:
+                chance = self.random.random() * 1000
+                
+                # TODO: may need to change these values based on vaccination
+                high_severityUpper = 300 if self.age == 1 else 500
+                low_severityUpper = 950 if self.age == 1 else 800
+                
+                # continue high_severity
+                if chance < high_severityUpper:
+                    pass
+                # low_severity
+                elif high_severityUpper < chance < low_severityUpper:
+                    self.status = 4
+                # deceased
+                else:
+                    self.status = 6
+                
+                self.high_severity_counter = 4 * 24
         # deceased
         else:
-            self.status = 6
+            pass
