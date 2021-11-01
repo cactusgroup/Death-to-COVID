@@ -113,14 +113,16 @@ while old < 1 or young < 1:
         young = 1
 
 # partially-masking
+def masked():
+    return random.random() < 0.35
 old = 0; young = 0
 while old < 35 or young < 95:
     k, v = random.choice([(k, v) for k, v in agents.items()])
     if (v.age == AGE['old'] and old < 35):
-        v.masked = lambda: random.random() < 0.35
+        v.masked = masked
         old += 1
     elif (v.age == AGE['young'] and young < 95):
-        v.masked = lambda: random.random() < 0.35
+        v.masked = masked
         young += 1
 
 # Draw functions
@@ -247,12 +249,13 @@ def make_button(msg, x):
     screen.blit(surf, bounds);
 
 def save():
-    file = asksaveasfile()
+    file = asksaveasfile('wb')
     pickle.dump((agents,hospital), file)
     file.close()
     
 def load():
-    file = askopenfile()
+    global agents, hospital
+    file = askopenfile('rb')
     agents, hospital = pickle.load(file)
     file.close()
 
@@ -288,6 +291,21 @@ while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
+        elif event.type == pygame.MOUSEBUTTONUP:
+            mouse = event.pos
+            if event.button == 1:
+                # Save
+                if (100 < mouse[0] < 190 and 530 < mouse[1] < 550):
+                    save()
+                # Load
+                if (200 < mouse[0] < 290 and 530 < mouse[1] < 550):
+                    load()
+                # Fast
+                if (300 < mouse[0] < 390 and 530 < mouse[1] < 550):
+                    speed = 'fast'
+                # Slow
+                if (400 < mouse[0] < 490 and 530 < mouse[1] < 550):
+                    speed = 'slow'
     
     
     
