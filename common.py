@@ -83,8 +83,8 @@ pygame.display.set_caption('COVID Model')
 grid = { (i,j):None for i in range(50) for j in range(50) }
 
 # Initialize agents (700 for NY, 762 for FL)
-NUM_OLD = 255
-NUM_YOUNG = 245
+NUM_OLD = 229
+NUM_YOUNG = 471
 agents = {} # {(row, col): Agent}
 hospital = {} # {col: Agent}
 
@@ -236,9 +236,46 @@ def load():
     file = askopenfile('rb')
     agents, hospital = pickle.load(file)
     file.close()
+    
+# Move and Expose
+def get_adjacent(loc, type='cells'):
+    result = []
+    for x, y in [(loc[0]+i, loc[1]+j)
+                 for i in (-1,0,1) for j in (-1,0,1)
+                 if i != 0 or j != 0]:
+        if type == 'cells' and (x, y) in grid and (x, y) not in agents:
+            result.append((x, y))
+        elif type == 'agents' and (x, y) in agents:
+            result.append((x, y))
+            
+    random.shuffle(result)
+    return result
+
+def cell_direction(loc, cellLoc):
+    x1, y1 = loc
+    x2, y2 = cellLoc
+    
+    if x2 == x1:
+        if y2 < y1:
+            return 2
+        if y2 > y1:
+            return 6
+    if y2 == y1:
+        if x2 < x1:
+            return 8
+        if x2 > x1:
+            return 4
+    if x2 > x1 and y2 > y1:
+        return 5
+    if x2 < x1 and y2 < y1:
+        return 1
+    if x2 > x1 and y2 < y1:
+        return 3
+    if x2 < x1 and y2 > y1:
+        return 7
 
 # Game loop
-speed = 'fast'
+speed = 'slow'
 while True:
     # draw background
     screen.fill(BACKGROUND_COLOR)
@@ -282,8 +319,19 @@ while True:
                 if (400 < mouse[0] < 490 and 530 < mouse[1] < 550):
                     speed = 'slow'
     
+    # Expose
     
     
+    # Move
+    newAgents = {k: v for k, v in agents.items()}
+    for k in agents:
+        cells = get_adjacent(k)
+        for cell in cells:
+            if cell not in newAgents:
+                newAgents[cell] = newAgents.pop(k)
+                break
+                    
+    agents = newAgents
     
     # Finished Drawing
     pygame.display.flip()
