@@ -251,28 +251,28 @@ def get_adjacent(loc, type='cells'):
     random.shuffle(result)
     return result
 
-def cell_direction(loc, cellLoc):
-    x1, y1 = loc
-    x2, y2 = cellLoc
+# def cell_direction(loc, cellLoc):
+#     x1, y1 = loc
+#     x2, y2 = cellLoc
     
-    if x2 == x1:
-        if y2 < y1:
-            return 2
-        if y2 > y1:
-            return 6
-    if y2 == y1:
-        if x2 < x1:
-            return 8
-        if x2 > x1:
-            return 4
-    if x2 > x1 and y2 > y1:
-        return 5
-    if x2 < x1 and y2 < y1:
-        return 1
-    if x2 > x1 and y2 < y1:
-        return 3
-    if x2 < x1 and y2 > y1:
-        return 7
+#     if x2 == x1:
+#         if y2 < y1:
+#             return 2
+#         if y2 > y1:
+#             return 6
+#     if y2 == y1:
+#         if x2 < x1:
+#             return 8
+#         if x2 > x1:
+#             return 4
+#     if x2 > x1 and y2 > y1:
+#         return 5
+#     if x2 < x1 and y2 < y1:
+#         return 1
+#     if x2 > x1 and y2 < y1:
+#         return 3
+#     if x2 < x1 and y2 > y1:
+#         return 7
 
 # Game loop
 speed = 'slow'
