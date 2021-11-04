@@ -105,7 +105,7 @@ class Agent:
                 if otherAgent.masked():
                     chance -= 0.7 * chance
             
-            if chance > 800:
+            if chance > 950:
                 self.status = 1 # ignorant
     
     def update(self, sim_time):
