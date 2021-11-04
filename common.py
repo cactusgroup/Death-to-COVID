@@ -276,6 +276,7 @@ def get_adjacent(loc, type='cells'):
 
 # Game loop
 speed = 'slow'
+sim_time = 0
 while True:
     # draw background
     screen.fill(BACKGROUND_COLOR)
@@ -320,7 +321,12 @@ while True:
                     speed = 'slow'
     
     # Expose
-    
+    for k, v in {k: v for k, v in agents.items()
+                 if (v.status == STATUS['ignorant'] or
+                     v.status == STATUS['contagious'])}.items():
+        exposees_ks = get_adjacent(k, 'agents')
+        for k in exposees_ks:
+            agents[k].expose(v)
     
     # Move
     newAgents = {k: v for k, v in agents.items()}
@@ -330,11 +336,17 @@ while True:
             if cell not in newAgents:
                 newAgents[cell] = newAgents.pop(k)
                 break
+    
+    # Update
+    for k in agents:
+        agents[k].update(sim_time)
                     
     agents = newAgents
     
     # Finished Drawing
     pygame.display.flip()
+    # update simulation time
+    sim_time += 1
     
     # Set Framerate
     if speed=='fast':
