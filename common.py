@@ -10,13 +10,15 @@ import pygame.freetype
 
 import random
 import pickle
+import sys
+import os
 
 from tkinter import Tk
 from tkinter.filedialog import askopenfile, asksaveasfile
 
-from Agent import Agent
+sys.path.append(os.path.abspath('./help'))
 from AgentsGen import generate_agents
-from Constants import Age, Status, Colors
+from Constants import Status, Colors
 from Images import (old_healthy, old_ignorant, old_contagious, old_infected,
                     old_low_severity, old_high_severity, old_deceased,
                     young_healthy, young_ignorant, young_contagious,
