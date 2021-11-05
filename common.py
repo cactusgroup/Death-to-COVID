@@ -9,15 +9,19 @@ import pygame
 import pygame.freetype
 
 import random
+import pickle
 
 from tkinter import Tk
 from tkinter.filedialog import askopenfile, asksaveasfile
 
-import pickle
-
 from Agent import Agent
-from status_constants import AGE, STATUS
-
+from AgentsGen import generate_agents
+from Constants import Age, Status, Colors
+from Images import (old_healthy, old_ignorant, old_contagious, old_infected,
+                    old_low_severity, old_high_severity, old_deceased,
+                    young_healthy, young_ignorant, young_contagious,
+                    young_infected, young_low_severity, young_high_severity,
+                    young_deceased)
 
 # Initialize library
 pygame.init()
@@ -27,52 +31,10 @@ clock = pygame.time.Clock()
 Tk().withdraw()
 
 # Constants
-# colors
-BACKGROUND_COLOR = (255,255,255)
-black = (0,0,0)
-gray = (128,128,128)
-light_gray = (144,144,144)
-dark_gray = (110,110,110)
-
 # screen dimensions
 (W, H) = (500 + 2*20, 500 + 3*20 + 10)
-
 # font for game text
 GAME_FONT = pygame.freetype.SysFont("Times New Roman", 12, bold=True)
-
-# images
-path = {i : './img/' + i + '.png' for i in [
-    'old_healthy',
-    'old_ignorant',
-    'old_contagious',
-    'old_infected',
-    'old_low_severity',
-    'old_high_severity',
-    'old_deceased',
-    
-    'young_healthy',
-    'young_ignorant',
-    'young_contagious',
-    'young_infected',
-    'young_low_severity',
-    'young_high_severity',
-    'young_deceased']}
-
-old_healthy = pygame.image.load(path['old_healthy'])
-old_ignorant = pygame.image.load(path['old_ignorant'])
-old_contagious = pygame.image.load(path['old_contagious'])
-old_infected = pygame.image.load(path["old_infected"])
-old_low_severity = pygame.image.load(path['old_low_severity'])
-old_high_severity = pygame.image.load(path['old_high_severity'])
-old_deceased = pygame.image.load(path["old_deceased"])
-
-young_healthy = pygame.image.load(path["young_healthy"])
-young_ignorant = pygame.image.load(path["young_ignorant"])
-young_contagious = pygame.image.load(path["young_contagious"])
-young_infected = pygame.image.load(path["young_infected"])
-young_low_severity = pygame.image.load(path['young_low_severity'])
-young_high_severity = pygame.image.load(path['young_high_severity'])
-young_deceased = pygame.image.load(path["young_deceased"])
 
 # Code
 # Set up display
@@ -83,57 +45,12 @@ pygame.display.set_caption('COVID Model')
 grid = { (i,j):None for i in range(50) for j in range(50) }
 
 # Initialize agents (700 for NY, 762 for FL)
-NUM_OLD = 229
-NUM_YOUNG = 471
-agents = {} # {(row, col): Agent}
-hospital = {} # {col: Agent}
+# {(row, col): Agent}
+agents = generate_agents(229,471, 1,1, 40,100, 70,70)
+# {col: Agent}
+hospital = {}
 
-# old
-for i in range(NUM_OLD):
-    loc = (random.randint(0, 49), random.randint(0, 49))
-    while loc in agents:
-        loc = (random.randint(0, 49), random.randint(0, 49))
-    agents[loc] = Agent(age=AGE['old'],
-                        status=STATUS['healthy'],
-                        vaccinated=0,
-                        masked=False,
-                        direction=random.randint(1,8))
 
-# young
-for i in range(NUM_YOUNG):
-    loc = (random.randint(0, 49), random.randint(0, 49))
-    while loc in agents:
-        loc = (random.randint(0, 49), random.randint(0, 49))
-    agents[loc] = Agent(age=AGE['young'],
-                        status=STATUS['healthy'],
-                        vaccinated=0,
-                        masked=False,
-                        direction=random.randint(1,8))
-
-# ignorant
-old = 0; young = 0
-while old < 1 or young < 1:
-    k, v = random.choice([(k, v) for k, v in agents.items()])
-    if (v.age == AGE['old'] and old < 1):
-        v.status = STATUS['ignorant']
-        old = 1
-    elif (v.age == AGE['young'] and young < 1):
-        v.status = STATUS['ignorant']
-        young = 1
-
-# partially-masking
-def masked():
-    return random.random() < 0.35
-
-old = 0; young = 0
-while old < 35 or young < 95:
-    k, v = random.choice([(k, v) for k, v in agents.items()])
-    if (v.age == AGE['old'] and old < 35):
-        v.masked = masked
-        old += 1
-    elif (v.age == AGE['young'] and young < 95):
-        v.masked = masked
-        young += 1
 
 # Draw functions
 def draw_grids():
@@ -217,11 +134,11 @@ def make_button(msg, x):
     mouse = pygame.mouse.get_pos()
     if x < mouse[0] < x + w and y < mouse[1] < y + h:
         if pygame.mouse.get_pressed()[0]:
-            pygame.draw.rect(screen, dark_gray, (x,y,w,h))
+            pygame.draw.rect(screen, Colors.dark_gray, (x,y,w,h))
         else:
-            pygame.draw.rect(screen, light_gray, (x,y,w,h))
+            pygame.draw.rect(screen, Colors.light_gray, (x,y,w,h))
     else:
-        pygame.draw.rect(screen, gray, (x,y,w,h))
+        pygame.draw.rect(screen, Colors.gray, (x,y,w,h))
     surf, bounds = GAME_FONT.render(msg, fgcolor=(0,0,0))
     bounds.center = (x + w/2, y + h/2)
     screen.blit(surf, bounds);
@@ -251,35 +168,12 @@ def get_adjacent(loc, type='cells'):
     random.shuffle(result)
     return result
 
-# def cell_direction(loc, cellLoc):
-#     x1, y1 = loc
-#     x2, y2 = cellLoc
-    
-#     if x2 == x1:
-#         if y2 < y1:
-#             return 2
-#         if y2 > y1:
-#             return 6
-#     if y2 == y1:
-#         if x2 < x1:
-#             return 8
-#         if x2 > x1:
-#             return 4
-#     if x2 > x1 and y2 > y1:
-#         return 5
-#     if x2 < x1 and y2 < y1:
-#         return 1
-#     if x2 > x1 and y2 < y1:
-#         return 3
-#     if x2 < x1 and y2 > y1:
-#         return 7
-
 # Game loop
 speed = 'slow'
 sim_time = 0
 while True:
     # draw background
-    screen.fill(BACKGROUND_COLOR)
+    screen.fill(Colors.bg_color)
     
     # Draw
     # draw grids
@@ -322,8 +216,8 @@ while True:
     
     # Expose
     for k, v in {k: v for k, v in agents.items()
-                 if (v.status == STATUS['ignorant'] or
-                     v.status == STATUS['contagious'])}.items():
+                 if (v.status == Status.ignorant or
+                     v.status == Status.contagious)}.items():
         exposees_ks = get_adjacent(k, 'agents')
         for k in exposees_ks:
             agents[k].expose(v)

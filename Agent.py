@@ -8,8 +8,6 @@ Created on Sun Oct 10 21:43:46 2021
 
 import random
 
-from status_constants import AGE, STATUS
-
 class Agent: 
     def __init__(self, age, status, vaccinated, masked, direction):
         """
