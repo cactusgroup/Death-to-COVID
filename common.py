@@ -52,6 +52,12 @@ agents = generate_agents(229,471, 1,1, 40,100, 70,70)
 # {col: Agent}
 hospital = {}
 
+NUM_BEDS = 100
+beds = {}
+
+for i in range(NUM_BEDS):
+    beds['bed_'+ str(i)] = 1
+
 
 
 # Draw functions
@@ -169,6 +175,77 @@ def get_adjacent(loc, type='cells'):
             
     random.shuffle(result)
     return result
+
+def has_bed(sim_time):
+
+    bed = False  # False means there is no bed
+    for key in NUM_BEDS:
+        if (beds[key] == 1):
+            bed = True  # True means there is a bed
+            break
+
+def to_hospital(sim_time):
+
+    for x in agents:
+        if (agents[x].age == 0):
+            if (agents[loc].status == 0): # healthy
+                pass
+            elif (agents[loc].status == 1): # ignorant
+                hospital[x] = agents(x)
+                for key in beds:
+                    if (beds[key] == 1):
+                        beds[key] = 0
+                        break
+            elif (agents[loc].status == 2): # contagious
+                hospital[x] = agents(x)
+                for key in beds:
+                    if (beds[key] == 1):
+                        beds[key] = 0
+                        break
+            elif (agents[loc].status == 3): # infected
+                hospital[x] = agents(x)
+                for key in beds:
+                    if (beds[key] == 1):
+                        beds[key] = 0
+                        break
+            elif (agents[loc].status == 4): # deceased
+                pass
+        elif (agents[x].age == 1):
+            if (agents[loc].status == 0): # healthy
+                pass
+            elif (agents[loc].status == 1): # ignorant
+                hospital[x] = agents(x)
+                for key in beds:
+                    if (beds[key] == 1):
+                        beds[key] = 0
+                        break
+            elif (agents[loc].status == 2): # contagious
+                hospital[x] = agents(x)
+                for key in beds:
+                    if (beds[key] == 1):
+                        beds[key] = 0
+                        break
+            elif (agents[loc].status == 3): # infected
+                hospital[x] = agents(x)
+                for key in beds:
+                    if (beds[key] == 1):
+                        beds[key] = 0
+                        break
+            elif (agents[loc].status == 4): # deceased
+                pass
+
+def collect_deceased():
+
+    count = 0
+    for loc in agents:
+        if (agents[loc].age == 0): # old
+            if (agents[loc].status == 4): # deceased
+                del agents[loc]
+                count += 1
+        elif (agents[loc].age == 1): # young
+            if (agents[loc].status == 4): # deceased
+                del agents[loc]
+                count += 1
 
 # Game loop
 speed = 'slow'
