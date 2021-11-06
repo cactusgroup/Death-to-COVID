@@ -239,11 +239,11 @@ def collect_deceased():
     count = 0
     for loc in agents:
         if (agents[loc].age == 0): # old
-            if (agents[loc].status == 4): # deceased
+            if (agents[loc].status == 4):
                 del agents[loc]
                 count += 1
         elif (agents[loc].age == 1): # young
-            if (agents[loc].status == 4): # deceased
+            if (agents[loc].status == 4): 
                 del agents[loc]
                 count += 1
 
