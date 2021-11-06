@@ -10,7 +10,7 @@ from Agent import Agent
 from Constants import Age, Status
 
 def generate_agents(nOld, nYoung, nIgnorantOld, nIgnorantYoung,
-                    nPartMaskedOld, nPartMaskedYoung,
+                    nPartMaskedOld, nPartMaskedYoung, partMaskedPercent,
                     nFullMaskedOld, nFullMaskedYoung):
     """
     Parameters
@@ -27,6 +27,9 @@ def generate_agents(nOld, nYoung, nIgnorantOld, nIgnorantYoung,
         Number of partially-masking old people.
     nPartMaskedYoung : integer
         Number of partially-masking young people.
+    partMaskedPercent : float
+        Percentage expressed as a decimal that partially-masked people are
+        masked.
     nFullMaskedOld : integer
         Number of fully-masked old people.
     nFullMaskedYoung : integer
@@ -80,7 +83,7 @@ def generate_agents(nOld, nYoung, nIgnorantOld, nIgnorantYoung,
     
     # partially-masking
     def masked():
-        return random.random() < 0.35
+        return random.random() < partMaskedPercent
     
     old = 0; young = 0
     while old < nPartMaskedOld:

@@ -18,6 +18,11 @@ class Status:
     low_severity = 4
     high_severity = 5
     deceased = 6
+
+class Vax:
+    non_vax = 0
+    first = 1
+    second = 2
     
 class Colors:
     bg_color = (255,255,255)

@@ -8,6 +8,8 @@ Created on Sun Oct 10 21:43:46 2021
 
 import random
 
+from Constants import Age, Status, Vax
+
 class Agent: 
     def __init__(self, age, status, vaccinated, masked, direction):
         """
@@ -71,16 +73,16 @@ class Agent:
         mask-wearing and vaccination determine whether this agent is infected
         """
         # if I am healthy and the other Agent is ignorant or contagious
-        if self.status == 0 and (otherAgent.status == 1 or
-                                 otherAgent.status == 2):
+        if self.status == Status.healthy and (otherAgent.status == Status.ignorant or
+                                              otherAgent.status == Status.contagious):
             chance = self.random.random() * 1000
             
             # 81% reduction in risk of infection by getting one dose
             # 91% reduction by getting two doses
             # https://www.cdc.gov/media/releases/2021/p0607-mrna-reduce-risks.html
-            if self.vaccinated == 1:
+            if self.vaccinated == Vax.first:
                 chance -= 0.81 * chance
-            elif self.vaccinated == 2:
+            elif self.vaccinated == Vax.second:
                 chance -= 0.91 * chance
             
             # 70% reduction in risk of infection by wearing a mask for health
@@ -104,7 +106,7 @@ class Agent:
                     chance -= 0.7 * chance
             
             if chance > 950:
-                self.status = 1 # ignorant
+                self.status = Status.ignorant # ignorant
     
     def update(self, sim_time):
         """
@@ -117,16 +119,16 @@ class Agent:
         """
         
         # ignorant
-        if self.status == 1:
+        if self.status == Status.ignorant:
             """
             ignorant status always transitions to contagious status
             """
             self.ignorant_counter -= 1
             if self.ignorant_counter == 0:
-                self.status = 2 # -> contagious
+                self.status = Status.contagious # -> contagious
                 self.ignorant_counter = 4 * 24 * 5
         # contagious
-        elif self.status == 2:
+        elif self.status == Status.contagious:
             """
             contagious status transitions to infected status,
             but a contagious agent is also symptomatic and may be placed in a
@@ -134,10 +136,10 @@ class Agent:
             """
             self.contagious_counter -= 1
             if self.contagious_counter == 0:
-                self.status = 3 # -> infected
+                self.status = Status.infected # -> infected
                 self.contagious_counter = 4 * 24 * 10
         # infected
-        elif self.status == 3:
+        elif self.status == Status.infected:
             """
             infected status branches into deceased, infected, or healthy
             statuses with probabilities that change if the agent is vaccinated.
@@ -150,29 +152,30 @@ class Agent:
             if self.infected_counter == 0:
                 chance = self.random.random() * 1000
                 
-                # set upper limits on chance of dying and staying infected
-                deceasedUpper = 5 if self.age == 1 else 500
+                # Set probabilities
+                deceasedUpper = 5 if self.age == Age.young else 500
                 infectedUpper = 800
                 if self.vaccinated == 1:
-                    deceasedUpper = 2 if self.age == 1 else 200
+                    deceasedUpper = 2 if self.age == Age.young else 200
                     infectedUpper = 680
                 elif self.vaccinated == 2:
-                    deceasedUpper = 1 if self.age == 1 else 100
+                    deceasedUpper = 1 if self.age == Age.young else 100
                     infectedUpper = 600
-                    
+                
+                # Transition
                 # deceased
                 if chance < deceasedUpper:
-                    self.status = 6
+                    self.status = Status.deceased
                 # continue infected
                 elif deceasedUpper < chance < infectedUpper:
                     pass
                 # abate
                 else:
-                    self.status = 1
+                    self.status = Status.healthy
                 
                 self.infected_counter = 4 * 24
         # low_severity
-        elif self.status == 4:
+        elif self.status == Status.low_severity:
             """
             low_severity status comes from contagious and infected statuses
             from outside of this function. The agent will usually be young.
@@ -183,23 +186,25 @@ class Agent:
             if self.low_severity_counter == 0:
                 chance = self.random.random() * 1000
                 
+                # Set probabilities
                 # TODO: may need to change these values based on vaccination
-                low_severityUpper = 600 if self.age == 1 else 400
-                high_severityUpper = 700 if self.age == 1 else 800
+                low_severityUpper = 600 if self.age == Age.young else 400
+                high_severityUpper = 700 if self.age == Age.young else 800
                 
+                # Transition
                 # continue low_severity
                 if chance < low_severityUpper:
                     pass
                 # high_severity
                 elif low_severityUpper < chance < high_severityUpper:
-                    self.status = 5
+                    self.status = Status.high_severity
                 # healthy
                 else:
-                    self.status = 1
+                    self.status = Status.healthy
                 
                 self.low_severity_counter = 4 * 24
         # high_severity
-        elif self.status == 5:
+        elif self.status == Status.high_severity:
             """
             high_severity status comes from contagious and infected statuses
             from outside of this function. The agent will usually be old.
@@ -210,19 +215,21 @@ class Agent:
             if self.high_severity_counter == 0:
                 chance = self.random.random() * 1000
                 
+                # Set probabilities
                 # TODO: may need to change these values based on vaccination
-                high_severityUpper = 300 if self.age == 1 else 500
-                low_severityUpper = 950 if self.age == 1 else 800
+                high_severityUpper = 300 if self.age == Age.young else 500
+                low_severityUpper = 950 if self.age == Age.young else 800
                 
+                # Transition
                 # continue high_severity
                 if chance < high_severityUpper:
                     pass
                 # low_severity
                 elif high_severityUpper < chance < low_severityUpper:
-                    self.status = 4
+                    self.status = Status.low_severity
                 # deceased
                 else:
-                    self.status = 6
+                    self.status = Status.deceased
                 
                 self.high_severity_counter = 4 * 24
         # deceased

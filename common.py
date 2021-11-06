@@ -43,16 +43,54 @@ GAME_FONT = pygame.freetype.SysFont("Times New Roman", 12, bold=True)
 screen = pygame.display.set_mode((W, H))
 pygame.display.set_caption('COVID Model')
 
+# (sim_time, rate)
+# masking
+full_masking_rate = [(0, .2), (4*24*30, .4), (4*24*10*30, .82)]
+part_masking_rate = [(0, .2)]
+part_masking_percent = 0.8
+# vaccinations
+vaccinated_1stdose_old = [(0, .0),
+                          (4*24*9*30 + 17*4*24, .0),
+                          (4*24*12*30 + 5*4*24, .442-.213),
+                          (4*24*13*30, .669-.432),
+                          (4*24*16*30, .858-.790)]
+vaccinated_fully_old = [(0, .0),
+                        (4*24*9*30 + 17*4*24, .0),
+                        (4*24*12*30 + 5*4*24, .213),
+                        (4*24*13*30, .432),
+                        (4*24*16*30, .790)]
+vaccinated_1stdose_young = [(0, .0),
+                            (4*24*9*30 + 17*4*24, .0),
+                            (4*24*11*30 + 13*4*24, .1477),
+                            (4*24*13*30, .337-.1729),
+                            (4*24*16*30, .6946-.6266)]
+vaccinated_fully_young = [(0, .0),
+                          (4*24*9*30 + 17*4*24, .0),
+                          (4*24*11*30 + 13*4*24, .0),
+                          (4*24*13*30, .1729),
+                          (4*24*16*30, .6266)]
+
 # initialize all 2500 cell locations in grid
 grid = { (i,j):None for i in range(50) for j in range(50) }
 
 # Initialize agents (700 for NY, 762 for FL)
+nOld = 229
+nYoung = 471
+assert nOld + nYoung == 700
+
 # {(row, col): Agent}
-agents = generate_agents(229,471, 1,1, 40,100, 70,70)
+agents = generate_agents(nOld,nYoung,
+                         
+                         1,1,
+                         
+                         part_masking_rate[0][1]*nOld,
+                         part_masking_rate[0][1]*nYoung,
+                         part_masking_percent,
+                         
+                         full_masking_rate[0][1]*nOld,
+                         full_masking_rate[0][1]*nYoung)
 # {col: Agent}
 hospital = {}
-
-
 
 # Draw functions
 def draw_grids():
