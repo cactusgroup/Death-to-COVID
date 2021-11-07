@@ -231,7 +231,7 @@ def find_bed():
     else:
          return None
 
-def to_hospital(loc, newAgents):
+def to_hospital(loc):
     """
     Sends an agent specified by its grid location to an open bed in the
     hospital if there is an open bed; otherwise, does nothing to the agent.
@@ -249,8 +249,7 @@ def to_hospital(loc, newAgents):
     """
     bed = find_bed()
     if bed != None:
-        hospital[bed] = newAgents[loc]
-        del newAgents[loc]
+        hospital[bed] = agents[loc]
         return True
     return False
     
@@ -333,16 +332,19 @@ while True:
     agents = newAgents
     
     # Check for calls to the hospital
-    newAgents = {k: v for k, v in agents.items()}
+    delete_list = []
     for k in {k: v for k, v in agents.items()
               if (v.status == Status.contagious or
                   v.status == Status.infected)}:
-        status = newAgents[k].status
-        newAgents[k].status = Status.low_severity
-        if not to_hospital(k, newAgents):
-            newAgents[k].status = status
+        status = agents[k].status
+        agents[k].status = Status.low_severity
+        if not to_hospital(k):
+            agents[k].status = status
             break
-    agemts = newAgents
+        else:
+            delete_list.append(k)
+    for el in delete_list:
+        del agents[el]
         
     
     # Update
