@@ -214,7 +214,27 @@ def get_adjacent(loc, type='cells'):
     random.shuffle(result)
     return result
 
-def has_bed(sim_time):
+def find_bed():
+    """
+    Checks for and returns an empty bed by column location or None if there is
+    no bed available.
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+    integer (column index)
+        Returns a column index that can be used to reserve a bed in the
+        hospital.
+
+    """
+    if len(hospital.itens()) == 0:
+        return 0 # first column index
+    elif len(hospital.items()) == 1:
+        return 1 # second column index
+    else:
+         return None
     
     # bed = False  # False means there is no bed
     # for key in NUM_BEDS:
