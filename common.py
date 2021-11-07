@@ -337,10 +337,10 @@ while True:
     for k in {k: v for k, v in agents.items()
               if (v.status == Status.contagious or
                   v.status == Status.infected)}:
-        status = agents[k].status
-        agents[k].status = Status.low_severity
+        status = newAgents[k].status
+        newAgents[k].status = Status.low_severity
         if not to_hospital(k, newAgents):
-            agents[k].status = status
+            newAgents[k].status = status
             break
     agemts = newAgents
         
