@@ -2,7 +2,7 @@
 """
 Created on Sat Oct  2 21:43:56 2021
 
-@author: Joshua
+@author: Joshua Chu
 """
 
 import pygame
@@ -91,12 +91,6 @@ agents = generate_agents(nOld,nYoung,
                           full_masking_rate[0][1]*nYoung)
 # {col: Agent}, 1x2 grid of hospital beds
 hospital = {}
-
-# NUM_BEDS = 100
-# beds = {}
-
-# for i in range(NUM_BEDS):
-#     beds['bed_'+ str(i)] = 1
 
 # Draw functions
 def draw_grids():
@@ -227,71 +221,39 @@ def find_bed():
     integer (column index)
         Returns a column index that can be used to reserve a bed in the
         hospital.
-
+        
+    @author: Jason Mejia
     """
-    if len(hospital.itens()) == 0:
+    if len(hospital.items()) == 0:
         return 0 # first column index
     elif len(hospital.items()) == 1:
         return 1 # second column index
     else:
          return None
+
+def to_hospital(loc, newAgents):
+    """
+    Sends an agent specified by its grid location to an open bed in the
+    hospital if there is an open bed; otherwise, does nothing to the agent.
+
+    Parameters
+    ----------
+    loc : integer
+        grid location of an agent.
+
+    Returns
+    -------
+    Returns True if the agent was removed to a hospital bed, and False if
+    nothing happened.
+
+    """
+    bed = find_bed()
+    if bed != None:
+        hospital[bed] = newAgents[loc]
+        del newAgents[loc]
+        return True
+    return False
     
-    # bed = False  # False means there is no bed
-    # for key in NUM_BEDS:
-    #     if (beds[key] == 1):
-    #         bed = True  # True means there is a bed
-    #         break
-
-def to_hospital(sim_time):
-
-    for x in agents:
-        if (agents[x].age == 0):
-            if (agents[loc].status == 0): # healthy
-                pass
-            elif (agents[loc].status == 1): # ignorant
-                hospital[x] = agents(x)
-                for key in beds:
-                    if (beds[key] == 1):
-                        beds[key] = 0
-                        break
-            elif (agents[loc].status == 2): # contagious
-                hospital[x] = agents(x)
-                for key in beds:
-                    if (beds[key] == 1):
-                        beds[key] = 0
-                        break
-            elif (agents[loc].status == 3): # infected
-                hospital[x] = agents(x)
-                for key in beds:
-                    if (beds[key] == 1):
-                        beds[key] = 0
-                        break
-            elif (agents[loc].status == 4): # deceased
-                pass
-        elif (agents[x].age == 1):
-            if (agents[loc].status == 0): # healthy
-                pass
-            elif (agents[loc].status == 1): # ignorant
-                hospital[x] = agents(x)
-                for key in beds:
-                    if (beds[key] == 1):
-                        beds[key] = 0
-                        break
-            elif (agents[loc].status == 2): # contagious
-                hospital[x] = agents(x)
-                for key in beds:
-                    if (beds[key] == 1):
-                        beds[key] = 0
-                        break
-            elif (agents[loc].status == 3): # infected
-                hospital[x] = agents(x)
-                for key in beds:
-                    if (beds[key] == 1):
-                        beds[key] = 0
-                        break
-            elif (agents[loc].status == 4): # deceased
-                pass
-
 def collect_deceased():
 
     count = 0
@@ -359,15 +321,29 @@ while True:
         for k in exposees_ks:
             agents[k].expose(v)
     
-    # Move
+    # Move if not deceased
     newAgents = {k: v for k, v in agents.items()}
     for k in agents:
-        cells = get_adjacent(k)
-        for cell in cells:
-            if cell not in newAgents:
-                newAgents[cell] = newAgents.pop(k)
-                break
+        if agents[k].status != Status.deceased:
+            cells = get_adjacent(k)
+            for cell in cells:
+                if cell not in newAgents:
+                    newAgents[cell] = newAgents.pop(k)
+                    break
     agents = newAgents
+    
+    # Check for calls to the hospital
+    newAgents = {k: v for k, v in agents.items()}
+    for k in {k: v for k, v in agents.items()
+              if (v.status == Status.contagious or
+                  v.status == Status.infected)}:
+        status = agents[k].status
+        agents[k].status = Status.low_severity
+        if not to_hospital(k, newAgents):
+            agents[k].status = status
+            break
+    agemts = newAgents
+        
     
     # Update
     for k in agents:
