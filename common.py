@@ -78,7 +78,7 @@ nOld = 229
 nYoung = 471
 assert nOld + nYoung == 700
 
-# {(row, col): Agent}
+# {(row, col): Agent}, 50x50 grid of agents
 agents = generate_agents(nOld,nYoung,
                           
                           1,1,
@@ -89,14 +89,14 @@ agents = generate_agents(nOld,nYoung,
                           
                           full_masking_rate[0][1]*nOld,
                           full_masking_rate[0][1]*nYoung)
-# {col: Agent}
+# {col: Agent}, 1x2 grid of hospital beds
 hospital = {}
 
-NUM_BEDS = 100
-beds = {}
+# NUM_BEDS = 100
+# beds = {}
 
-for i in range(NUM_BEDS):
-    beds['bed_'+ str(i)] = 1
+# for i in range(NUM_BEDS):
+#     beds['bed_'+ str(i)] = 1
 
 # Draw functions
 def draw_grids():
@@ -215,12 +215,12 @@ def get_adjacent(loc, type='cells'):
     return result
 
 def has_bed(sim_time):
-
-    bed = False  # False means there is no bed
-    for key in NUM_BEDS:
-        if (beds[key] == 1):
-            bed = True  # True means there is a bed
-            break
+    
+    # bed = False  # False means there is no bed
+    # for key in NUM_BEDS:
+    #     if (beds[key] == 1):
+    #         bed = True  # True means there is a bed
+    #         break
 
 def to_hospital(sim_time):
 
@@ -347,12 +347,13 @@ while True:
             if cell not in newAgents:
                 newAgents[cell] = newAgents.pop(k)
                 break
+    agents = newAgents
     
     # Update
     for k in agents:
         agents[k].update(sim_time)
                     
-    agents = newAgents
+    
     
     # Finished Drawing
     pygame.display.flip()
