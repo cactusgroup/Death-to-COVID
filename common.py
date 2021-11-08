@@ -18,7 +18,7 @@ from tkinter.filedialog import askopenfile, asksaveasfile
 
 sys.path.append(os.path.abspath('./help'))
 from AgentsGen import generate_agents
-from Constants import Status, Colors
+from Constants import Status, Colors, Age
 from Images import (old_healthy, old_ignorant, old_contagious, old_infected,
                     old_low_severity, old_high_severity, old_deceased,
                     young_healthy, young_ignorant, young_contagious,
@@ -220,18 +220,25 @@ def find_bed():
     -------
     integer (column index)
         Returns a column index that can be used to reserve a bed in the
-        hospital.
+        hospital, or None is there is no bed available.
         
     @author: Jason Mejia
     """
-    if len(hospital.items()) == 0:
-        return 0 # first column index
-    elif len(hospital.items()) == 1:
+    if 0 in hospital and 1 in hospital:
+        print('None')
+        return None
+    if 0 in hospital:
+        print('col 1 free')
         return 1 # second column index
-    else:
-         return None
+    if 1 in hospital:
+        print('col 0 free')
+        return 0 # first column index
 
-def to_hospital(loc):
+hospitalized_old = 0
+hospitalized_young = 0
+hospitalized_m_old = []
+hospitalized_m_young = []
+def to_hospital(loc, sim_time):
     """
     Sends an agent specified by its grid location to an open bed in the
     hospital if there is an open bed; otherwise, does nothing to the agent.
@@ -245,26 +252,67 @@ def to_hospital(loc):
     -------
     Returns True if the agent was removed to a hospital bed, and False if
     nothing happened.
-
+    
+    @author: Jason Mejia
     """
+    global hospitalized_old, hospitalized_young
+    global hospitalized_m_old, hospitalized_m_young
+    
+    if sim_time % 4*24*30 == 0 and sim_time != 0:
+        hospitalized_m_old.append(hospitalized_old)
+        hospitalized_m_young.append(hospitalized_young)
+        hospitalized_old = hospitalized_young = 0
+    
     bed = find_bed()
     if bed != None:
         hospital[bed] = agents[loc]
+        
+        if agents[loc].age == Age.old:
+            hospitalized_old += 1
+        elif agents[loc].age == Age.young:
+            hospitalized_young += 1
+        
         return True
     return False
-    
-def collect_deceased():
 
-    count = 0
-    for loc in agents:
-        if (agents[loc].age == 0): # old
-            if (agents[loc].status == 4):
-                del agents[loc]
-                count += 1
-        elif (agents[loc].age == 1): # young
-            if (agents[loc].status == 4): 
-                del agents[loc]
-                count += 1
+deceased_old = 0
+deceased_young = 0
+deceased_m_old = []
+deceased_m_young = []
+def collect_deceased(sim_time):
+    global deceased_old, deceased_young
+    global deceased_m_old, deceased_m_young
+    
+    if sim_time % 4*24*30 == 0 and sim_time != 0:
+        deceased_m_old.append(deceased_old)
+        deceased_m_young.append(deceased_young)
+        deceased_old = deceased_young = 0
+    
+    agents_del_list = []
+    for loc in {k: v for k, v in agents.items()
+                if v.status == Status.deceased}:
+        agents_del_list.append(loc)
+        
+        if (agents[loc].age == Age.old):
+            deceased_old += 1
+        elif (agents[loc].age == Age.young):
+            deceased_young += 1
+            
+    for el in agents_del_list:
+        del agents[el]
+    
+    hosp_del_list = []
+    for col in {k: v for k, v in hospital.items()
+                if v.status == Status.deceased}:
+        hosp_del_list.append(col)
+        
+        if hospital[col].age == Age.old:
+            deceased_old += 1
+        elif hospital[col].age == Age.young:
+            deceased_young += 1
+            
+    for el in hosp_del_list:
+        del hospital[el]
 
 # Game loop
 speed = 'slow'
@@ -333,20 +381,40 @@ while True:
     
     # Check for calls to the hospital
     delete_list = []
+    print('Checking calls to hospital')
     for k in {k: v for k, v in agents.items()
               if (v.status == Status.contagious or
                   v.status == Status.infected)}:
+        print(f'Checking status: {agents[k].status}')
         status = agents[k].status
+        
         agents[k].status = Status.low_severity
-        if not to_hospital(k):
+        
+        if not to_hospital(k, sim_time):
+            print('did not go to hospital')
             agents[k].status = status
             break
         else:
+            print('went to hospital')
             delete_list.append(k)
     for el in delete_list:
         del agents[el]
         
-    
+    # Check for agents returning from the hospital
+    delete_list = []
+    for k in {k: v for k, v in hospital.items()
+              if v.status == Status.healthy}:
+        loc = (random.randint(0, 49), random.randint(0, 49))
+        while loc in agents:
+            loc = (random.randint(0, 49), random.randint(0, 49))
+        agents[loc] = hospital[k]
+        delete_list.append(k)
+    for el in delete_list:
+        del hospital[k]
+        
+    # Collect deceased
+    collect_deceased(sim_time)
+
     # Update
     for k in agents:
         agents[k].update(sim_time)
@@ -357,9 +425,23 @@ while True:
     pygame.display.flip()
     # update simulation time
     sim_time += 1
+    # finish simulation
+    if sim_time == 34560:
+        break
     
     # Set Framerate
     if speed=='fast':
         clock.tick(30) # 18 minute simulation
     elif speed=='slow':
         clock.tick(1) # 9.6 hour simulation
+
+months = {k: v for k, v in zip([0,1,2,3,4,5,6,7,8,9,10,11],
+                               ['March', 'April', 'May',
+                                'June', 'July', 'August',
+                                'September', 'October', 'November',
+                                'December', 'January', 'February'])}
+print('           \t Hospitalizations \t Deaths')
+print('           \t Old    Young     \t Old     Young')
+for month in range(len(hospitalized_m_old)):
+    print(f'{months[month % 12]} \t '
+          f'{hospitalized_m_old[month] / (nOld + nYoung)*10**-5:4.2} ')
