@@ -225,13 +225,12 @@ def find_bed():
     @author: Jason Mejia
     """
     if 0 in hospital and 1 in hospital:
-        print('None')
         return None
     if 0 in hospital:
-        print('col 1 free')
         return 1 # second column index
     if 1 in hospital:
-        print('col 0 free')
+        return 0 # first column index
+    if len(hospital.items()) == 0:
         return 0 # first column index
 
 hospitalized_old = 0
@@ -258,7 +257,7 @@ def to_hospital(loc, sim_time):
     global hospitalized_old, hospitalized_young
     global hospitalized_m_old, hospitalized_m_young
     
-    if sim_time % 4*24*30 == 0 and sim_time != 0:
+    if sim_time % (4*16*30) == 0 and sim_time != 0:
         hospitalized_m_old.append(hospitalized_old)
         hospitalized_m_young.append(hospitalized_young)
         hospitalized_old = hospitalized_young = 0
@@ -283,7 +282,7 @@ def collect_deceased(sim_time):
     global deceased_old, deceased_young
     global deceased_m_old, deceased_m_young
     
-    if sim_time % 4*24*30 == 0 and sim_time != 0:
+    if sim_time % (4*16*30) == 0 and sim_time != 0:
         deceased_m_old.append(deceased_old)
         deceased_m_young.append(deceased_young)
         deceased_old = deceased_young = 0
@@ -381,21 +380,17 @@ while True:
     
     # Check for calls to the hospital
     delete_list = []
-    print('Checking calls to hospital')
     for k in {k: v for k, v in agents.items()
               if (v.status == Status.contagious or
                   v.status == Status.infected)}:
-        print(f'Checking status: {agents[k].status}')
         status = agents[k].status
         
         agents[k].status = Status.low_severity
         
         if not to_hospital(k, sim_time):
-            print('did not go to hospital')
             agents[k].status = status
             break
         else:
-            print('went to hospital')
             delete_list.append(k)
     for el in delete_list:
         del agents[el]
@@ -418,6 +413,8 @@ while True:
     # Update
     for k in agents:
         agents[k].update(sim_time)
+    for k in hospital:
+        hospital[k].update(sim_time)
                     
     
     
@@ -425,6 +422,7 @@ while True:
     pygame.display.flip()
     # update simulation time
     sim_time += 1
+    print(sim_time)
     # finish simulation
     if sim_time == 34560:
         break
@@ -445,3 +443,5 @@ print('           \t Old    Young     \t Old     Young')
 for month in range(len(hospitalized_m_old)):
     print(f'{months[month % 12]} \t '
           f'{hospitalized_m_old[month] / (nOld + nYoung)*10**-5:4.2} ')
+    
+pygame.quit()
