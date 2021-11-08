@@ -64,3 +64,6 @@ class ImgPaths:
     young_low_severity = path['young_low_severity']
     young_high_severity = path['young_high_severity']
     young_deceased = path["young_deceased"]
+    
+# font for game text
+# GAME_FONT = pygame.freetype.SysFont("Times New Roman", 12, bold=True)
