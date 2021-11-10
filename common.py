@@ -96,6 +96,7 @@ quarantine = {}
 
 # Draw functions
 def draw_grids():
+    global screen
     # main grid
     # vertical lines
     left = 20
@@ -169,6 +170,7 @@ def draw_grids():
         bottom += 10
 
 def draw_agents():
+    global screen
     images = [[old_healthy, old_ignorant, old_contagious, old_infected,
                 old_low_severity, old_high_severity, old_deceased],
               [young_healthy, young_ignorant, young_contagious,
@@ -180,6 +182,7 @@ def draw_agents():
         screen.blit(img, (20 + loc[0]*10, 20 + loc[1]*10))
 
 def draw_hospital():
+    global screen
     images = [[old_healthy, old_ignorant, old_contagious, old_infected,
                 old_low_severity, old_high_severity, old_deceased],
               [young_healthy, young_ignorant, young_contagious,
@@ -192,6 +195,7 @@ def draw_hospital():
 
 # Animation control functions
 def make_button(msg, x):
+    global screen
     y = 20 + 500 + 10
     w = 90
     h = 20
@@ -209,6 +213,7 @@ def make_button(msg, x):
     screen.blit(surf, bounds);
 
 def save():
+    global agents, hospital
     file = asksaveasfile('wb')
     pickle.dump((agents,hospital), file)
     file.close()
@@ -262,7 +267,8 @@ def check_hospital_calls():
     global agents, sim_time
     # Check for calls to the hospital
     delete_list = []
-    for k in {k: v for k, v in agents.items()
+    for k in {k: v for k, v in sorted(agents.items(),
+                                      key=lambda x: x[1].age)
               if (v.status == Status.contagious or
                   v.status == Status.infected)}:
         status = agents[k].status
@@ -343,6 +349,7 @@ def to_hospital(loc, sim_time):
     global agents, hospital
     
     if sim_time % (4*16*30) == 0 and sim_time != 0 or sim_time == 34559:
+        print('Hospitalized: Old', hospitalized_old, 'Young', hospitalized_young)
         hospitalized_m_old.append(hospitalized_old)
         hospitalized_m_young.append(hospitalized_young)
         hospitalized_old = hospitalized_young = 0
@@ -370,6 +377,7 @@ def collect_deceased(sim_time):
     global agents, hospital
     
     if sim_time % (4*16*30) == 0 and sim_time != 0 or sim_time == 34559:
+        print('deceased: Old', deceased_old, 'Young', deceased_young)
         deceased_m_old.append(deceased_old)
         deceased_m_young.append(deceased_young)
         deceased_old = deceased_young = 0
@@ -399,6 +407,14 @@ def collect_deceased(sim_time):
             
     for el in hosp_del_list:
         del hospital[el]
+
+# Update agents in grid, hospital, amd quarantine
+def update_agents():
+    global agents, hospital, quarantine
+    for k in agents:
+        agents[k].update(sim_time)
+    for k in hospital:
+        hospital[k].update(sim_time)
 
 # Game loop
 speed = 'slow'
@@ -440,12 +456,8 @@ while True:
     check_hospital_calls()
     check_discharges()
     collect_deceased(sim_time)
-
-    # Update
-    for k in agents:
-        agents[k].update(sim_time)
-    for k in hospital:
-        hospital[k].update(sim_time)
+    update_agents()
+    
                     
     # Finished Drawing
     pygame.display.flip()
@@ -468,7 +480,10 @@ months = {k: v for k, v in zip([0,1,2,3,4,5,6,7,8,9,10,11],
 print('           \t Hospitalizations \t Deaths')
 print('           \t Old    Young     \t Old     Young')
 for month in range(len(hospitalized_m_old)):
-    print(f'{months[month % 12]} \t '
-          f'{hospitalized_m_old[month] / (nOld + nYoung)*10**-5:4.2} ')
+    print(f'{months[month % 12]} \t ',
+          f'{hospitalized_m_old[month] / nOld*10**-5:4.2} '
+          f'{hospitalized_m_young[month] / nYoung*10**-5:4.2} \t'
+          f'{deceased_m_old[month] / nOld*10**-5:4.2} '
+          f'{deceased_m_young[month] / nYoung*10**-5:4.2} ')
     
 pygame.quit()
