@@ -98,6 +98,7 @@ def generate_agents(nOld, nYoung, nIgnorantOld, nIgnorantYoung,
             young += 1
             
     # fully=masking
+    old = 0; young = 0
     while old < nPartMaskedOld:
         k, v = random.choice([(k, v) for k, v in agents.items()])
         if (v.age == Age.old and v.masked != masked):

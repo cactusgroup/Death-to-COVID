@@ -106,6 +106,8 @@ class Agent:
                     chance -= 0.7 * chance
             
             if chance > 950:
+                print(chance)
+            if chance > 950:
                 self.status = Status.ignorant # ignorant
     
     def update(self, sim_time):
@@ -143,7 +145,8 @@ class Agent:
             """
             infected status branches into deceased, infected, or healthy
             statuses with probabilities that change if the agent is vaccinated.
-            The deceased probability also changes depending on agent age.
+            The deceased probability also changes depending on agent age,
+            becoming 100x as high for old agents.
             https://www.cdc.gov/coronavirus/2019-ncov/covid-data/investigations-discovery/hospitalization-death-by-age.html
             An infected agent is (maybe more) symptomatic, so they may also be
             placed in a hospital, outside of this update function.
@@ -155,10 +158,10 @@ class Agent:
                 # Set probabilities
                 deceasedUpper = 5 if self.age == Age.young else 500
                 infectedUpper = 800
-                if self.vaccinated == 1:
+                if self.vaccinated == Vax.first:
                     deceasedUpper = 2 if self.age == Age.young else 200
                     infectedUpper = 680
-                elif self.vaccinated == 2:
+                elif self.vaccinated == Vax.second:
                     deceasedUpper = 1 if self.age == Age.young else 100
                     infectedUpper = 600
                 
@@ -187,9 +190,14 @@ class Agent:
                 chance = self.random.random() * 1000
                 
                 # Set probabilities
-                # TODO: may need to change these values based on vaccination
-                low_severityUpper = 600 if self.age == Age.young else 400
-                high_severityUpper = 700 if self.age == Age.young else 800
+                low_severityUpper = 600 if self.age == Age.young else 300
+                high_severityUpper = 800 if self.age == Age.young else 800
+                if self.vaccinated == Vax.first:
+                    low_severityUpper = 500 if self.age == Age.young else 400
+                    high_severityUpper = 700 if self.age == Age.young else 700
+                elif self.vaccinated == Vax.second:
+                    low_severityUpper = 450 if self.age == Age.young else 500
+                    high_severityUpper = 600 if self.age == Age.young else 750
                 
                 # Transition
                 # continue low_severity
@@ -216,9 +224,14 @@ class Agent:
                 chance = self.random.random() * 1000
                 
                 # Set probabilities
-                # TODO: may need to change these values based on vaccination
                 high_severityUpper = 300 if self.age == Age.young else 500
-                low_severityUpper = 950 if self.age == Age.young else 800
+                low_severityUpper = 900 if self.age == Age.young else 800
+                if self.vaccinated == Vax.first:
+                    high_severityUpper = 250 if self.age == Age.young else 400
+                    low_severityUpper = 950 if self.age == Age.young else 850
+                elif self.vaccinated == Vax.second:
+                    high_severityUpper = 200 if self.age == Age.young else 450
+                    low_severityUpper = 950 if self.age == Age.young else 900
                 
                 # Transition
                 # continue high_severity

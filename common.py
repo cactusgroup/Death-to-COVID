@@ -8,6 +8,8 @@ Created on Sat Oct  2 21:43:56 2021
 import pygame
 import pygame.freetype
 
+import matplotlib.pyplot as plt
+
 import random
 import pickle
 import sys
@@ -24,6 +26,7 @@ from Images import (old_healthy, old_ignorant, old_contagious, old_infected,
                     young_healthy, young_ignorant, young_contagious,
                     young_infected, young_low_severity, young_high_severity,
                     young_deceased)
+from SimParams import NewYork, Florida
 
 # Initialize library
 pygame.init()
@@ -43,32 +46,40 @@ GAME_FONT = pygame.freetype.SysFont("Times New Roman", 12, bold=True)
 screen = pygame.display.set_mode((W, H))
 pygame.display.set_caption('COVID Model')
 
-# (sim_time, rate)
+# (sim_time, rate), incremental rate
 # masking
-full_masking_rate = [(0, .2), (4*16*30, .4), (4*16*10*30, .82)]
-part_masking_rate = [(0, .2)]
-part_masking_percent = 0.8
+full_masking_rate = {k:v for k, v in zip([0,
+                                          4*16*30,
+                                          4*16*10*30],
+                                         NewYork.full_masking_rate)}
+part_masking_rate = {k:v for k, v in zip([0],
+                                         NewYork.part_masking_rate)}
+part_masking_percent = NewYork.part_masking_percent
 # vaccinations
-vaccinated_1stdose_old = [(0, .0),
-                          (4*16*9*30 + 17*4*16, .0),
-                          (4*16*12*30 + 5*4*16, .442-.213),
-                          (4*16*13*30, .669-.432),
-                          (4*16*16*30, .858-.790)]
-vaccinated_fully_old = [(0, .0),
-                        (4*16*9*30 + 17*4*16, .0),
-                        (4*16*12*30 + 5*4*16, .213),
-                        (4*16*13*30, .432),
-                        (4*16*16*30, .790)]
-vaccinated_1stdose_young = [(0, .0),
-                            (4*16*9*30 + 17*4*16, .0),
-                            (4*16*11*30 + 13*4*16, .1477),
-                            (4*16*13*30, .337-.1729),
-                            (4*16*16*30, .6946-.6266)]
-vaccinated_fully_young = [(0, .0),
-                          (4*16*9*30 + 17*4*16, .0),
-                          (4*16*11*30 + 13*4*16, .0),
-                          (4*16*13*30, .1729),
-                          (4*16*16*30, .6266)]
+vaccinated_1stdose_old = {k:v for k, v in zip([0,
+                                               4*16*9*30 + 17*4*16,
+                                               4*16*12*30 + 5*4*16,
+                                               4*16*13*30,
+                                               4*16*16*30],
+                                              NewYork.vaccinated_1stdose_old)}
+vaccinated_fully_old = {k:v for k, v in zip([0,
+                                             4*16*9*30 + 17*4*16,
+                                             4*16*12*30 + 5*4*16,
+                                             4*16*13*30,
+                                             4*16*16*30],
+                                            NewYork.vaccinated_fully_old)}
+vaccinated_1stdose_young = {k:v for k, v in zip([0,
+                                                 4*16*9*30 + 17*4*16,
+                                                 4*16*11*30 + 13*4*16,
+                                                 4*16*13*30,
+                                                 4*16*16*30],
+                                                NewYork.vaccinated_1stdose_young)}
+vaccinated_fully_young = {k:v for k, v in zip([0,
+                                               4*16*9*30 + 17*4*16,
+                                               4*16*11*30 + 13*4*16,
+                                               4*16*13*30,
+                                               4*16*16*30,],
+                                              NewYork.vaccinated_fully_young)}
 
 # initialize all 2500 cell locations in grid
 grid = { (i,j):None for i in range(50) for j in range(50) }
@@ -83,12 +94,12 @@ agents = generate_agents(nOld,nYoung,
                           
                           1,1,
                           
-                          part_masking_rate[0][1]*nOld,
-                          part_masking_rate[0][1]*nYoung,
+                          part_masking_rate[0]*nOld,
+                          part_masking_rate[0]*nYoung,
                           part_masking_percent,
                           
-                          full_masking_rate[0][1]*nOld,
-                          full_masking_rate[0][1]*nYoung)
+                          full_masking_rate[0]*nOld,
+                          full_masking_rate[0]*nYoung)
 # {col: Agent}, 1x2 grid of hospital beds
 hospital = {}
 # {(row, col): Agent}, 30x30 grid of agents
@@ -192,6 +203,18 @@ def draw_hospital():
     for col, agent in hospital.items():
         img = images[agent.age][agent.status]
         screen.blit(img, (20 + col*10, 20 + 500 + 20))
+
+def draw_quarantine():
+    global screen
+    images = [[old_healthy, old_ignorant, old_contagious, old_infected,
+                old_low_severity, old_high_severity, old_deceased],
+              [young_healthy, young_ignorant, young_contagious,
+                young_infected, young_low_severity, young_high_severity,
+                young_deceased]]
+    img = ''
+    for loc, agent in quarantine.items():
+        img = images[agent.age][agent.status]
+        screen.blit(img, (540 + loc[0]*10, 40 + loc[1]*10))
 
 # Animation control functions
 def make_button(msg, x):
@@ -323,10 +346,12 @@ def find_bed():
     if len(hospital.items()) == 0:
         return 0 # first column index
 
-hospitalized_old = 0
-hospitalized_young = 0
+hosp_old = 0
+hosp_young = 0
 hospitalized_m_old = []
 hospitalized_m_young = []
+hospitalized_old = [19.15, 2.7, 2.77, 79.5, 18.0, 1.0]
+hospitalized_young = [3.9, 0.8, 1.1, 11.6, 5.8, 1.0]
 def to_hospital(loc, sim_time):
     """
     Sends an agent specified by its grid location to an open bed in the
@@ -344,43 +369,74 @@ def to_hospital(loc, sim_time):
     
     @author: Jason Mejia
     """
-    global hospitalized_old, hospitalized_young
+    global hosp_old, hosp_young
     global hospitalized_m_old, hospitalized_m_young
     global agents, hospital
     
     if sim_time % (4*16*30) == 0 and sim_time != 0 or sim_time == 34559:
-        print('Hospitalized: Old', hospitalized_old, 'Young', hospitalized_young)
-        hospitalized_m_old.append(hospitalized_old)
-        hospitalized_m_young.append(hospitalized_young)
-        hospitalized_old = hospitalized_young = 0
+        print('Hospitalized: Old', hosp_old, 'Young', hosp_young)
+        hospitalized_m_old.append(hosp_old)
+        hospitalized_m_young.append(hosp_young)
+        hosp_old = hosp_young = 0
     
     bed = find_bed()
     if bed != None:
         hospital[bed] = agents[loc]
         
         if agents[loc].age == Age.old:
-            hospitalized_old += 1
+            hosp_old += 1
         elif agents[loc].age == Age.young:
-            hospitalized_young += 1
+            hosp_young += 1
         
         return True
     return False
 
+# Quarantine functions
+def enter_quarantine():
+    global agents, quaramtine
+    delete_list = []
+    for k in {k:v for k, v in agents.items() if (v.age == Age.young and
+                                                 v.status == Status.contagious and
+                                                 random.random() < 0.4)}:
+        delete_list.append(k)
+        loc = (random.randint(0, 29), random.randint(0, 29))
+        while loc in quarantine:
+            loc = (random.randint(0, 29), random.randint(0, 29))
+        quarantine[loc] = agents[k]
+    for el in delete_list:
+        del agents[el]
+
+def exit_quarantine():
+    global agents, quaramtine
+    delete_list = []
+    for k in {k:v for k, v in quarantine.items() if (v.status == Status.infected or
+                                                 v.status == Status.healthy)}:
+        delete_list.append(k)
+        loc = (random.randint(0, 49), random.randint(0, 49))
+        while loc in agents:
+            loc = (random.randint(0, 49), random.randint(0, 49))
+        agents[loc] = quarantine[k]
+    for el in delete_list:
+        del quarantine[el]
+    
+
 # death function
-deceased_old = 0
-deceased_young = 0
+deceased_old = [331.88, 6.497, 6.65, 96.428, 29.25, 3.217]
+deceased_young = [8.760, 0.245, 0.15, 1.327, 0.97, 0.23]
+dead_old = 0
+dead_young = 0
 deceased_m_old = []
 deceased_m_young = []
 def collect_deceased(sim_time):
-    global deceased_old, deceased_young
+    global dead_old, dead_young
     global deceased_m_old, deceased_m_young
     global agents, hospital
     
     if sim_time % (4*16*30) == 0 and sim_time != 0 or sim_time == 34559:
-        print('deceased: Old', deceased_old, 'Young', deceased_young)
-        deceased_m_old.append(deceased_old)
-        deceased_m_young.append(deceased_young)
-        deceased_old = deceased_young = 0
+        print('deceased: Old', dead_old, 'Young', dead_young)
+        deceased_m_old.append(dead_old)
+        deceased_m_young.append(dead_young)
+        dead_old = dead_young = 0
     
     agents_del_list = []
     for loc in {k: v for k, v in agents.items()
@@ -388,9 +444,9 @@ def collect_deceased(sim_time):
         agents_del_list.append(loc)
         
         if (agents[loc].age == Age.old):
-            deceased_old += 1
+            dead_old += 1
         elif (agents[loc].age == Age.young):
-            deceased_young += 1
+            dead_young += 1
             
     for el in agents_del_list:
         del agents[el]
@@ -401,9 +457,9 @@ def collect_deceased(sim_time):
         hosp_del_list.append(col)
         
         if hospital[col].age == Age.old:
-            deceased_old += 1
+            dead_old += 1
         elif hospital[col].age == Age.young:
-            deceased_young += 1
+            dead_young += 1
             
     for el in hosp_del_list:
         del hospital[el]
@@ -415,6 +471,8 @@ def update_agents():
         agents[k].update(sim_time)
     for k in hospital:
         hospital[k].update(sim_time)
+    for k in quarantine:
+        quarantine[k].update(sim_time)
 
 # Game loop
 speed = 'slow'
@@ -427,6 +485,7 @@ while True:
     draw_grids()
     draw_agents()
     draw_hospital()
+    draw_quarantine()
     
     # draw button graphics (animation control)
     make_button('Save', x=100)
@@ -453,6 +512,8 @@ while True:
     
     expose_agents()
     move_agents()
+    enter_quarantine()
+    exit_quarantine()
     check_hospital_calls()
     check_discharges()
     collect_deceased(sim_time)
@@ -473,17 +534,70 @@ while True:
         clock.tick(1) # 9.6 hour simulation
 
 months = {k: v for k, v in zip([0,1,2,3,4,5,6,7,8,9,10,11],
-                               ['March', 'April', 'May',
-                                'June', 'July', 'August',
-                                'September', 'October', 'November',
-                                'December', 'January', 'February'])}
+                               ['Mar', 'Apr', 'May',
+                                'Jun', 'Jul', 'Aug',
+                                'Sep', 'Oct', 'Nov',
+                                'Dec', 'Jan', 'Feb'])}
+
 print('           \t Hospitalizations \t Deaths')
 print('           \t Old    Young     \t Old     Young')
 for month in range(len(hospitalized_m_old)):
     print(f'{months[month % 12]} \t ',
-          f'{hospitalized_m_old[month] / nOld*10**-5:4.2} '
-          f'{hospitalized_m_young[month] / nYoung*10**-5:4.2} \t'
-          f'{deceased_m_old[month] / nOld*10**-5:4.2} '
-          f'{deceased_m_young[month] / nYoung*10**-5:4.2} ')
-    
+          f'{hospitalized_m_old[month] / (nOld*10**-5):7.3}  '
+          f'{hospitalized_m_young[month] / (nYoung*10**-5):7.3} \t'
+          f'{deceased_m_old[month] / (nOld*10**-5):7.3}  '
+          f'{deceased_m_young[month] / (nYoung*10**-5):7.3} ')
+
+fig, ax = plt.subplots(figsize=(7,3))
+ax.set_xticks([i for i in range(18)])
+ax.set_xticklabels([months[i % 12] for i in range(18)])
+ax.plot(list(range(18)),
+        [n / (nOld*10**-5) for n in hospitalized_m_old], 'r--')
+ax2 = ax.twinx()
+ax2.set_ylabel('public record rate')
+ax2.plot([3*i + 1 for i in range(6)], hospitalized_old, 'b-')
+ax.set_title('Hospitalization rate for old population')
+ax.set_xlabel('Months since March 2020')
+ax.set_ylabel('Rate per 100,000 population')
+fig.canvas.draw()
+
+fig, ax = plt.subplots(figsize=(7,3))
+ax.set_xticks([i for i in range(18)])
+ax.set_xticklabels([months[i % 12] for i in range(18)])
+ax.plot(list(range(18)),
+        [n / (nYoung*10**-5) for n in hospitalized_m_young], 'r--')
+ax2 = ax.twinx()
+ax2.set_ylabel('public record rate')
+ax2.plot([3*i + 1 for i in range(6)], hospitalized_young, 'b-')
+ax.set_title('Hospitalization rate for young population')
+ax.set_xlabel('Months since March 2020')
+ax.set_ylabel('Rate per 100,000 population')
+fig.canvas.draw()
+
+fig, ax = plt.subplots(figsize=(7,3))
+ax.set_xticks([i for i in range(18)])
+ax.set_xticklabels([months[i % 12] for i in range(18)])
+ax.plot(list(range(18)),
+        [n / (nOld*10**-5) for n in deceased_m_old], 'r--')
+ax2 = ax.twinx()
+ax2.set_ylabel('public record rate')
+ax2.plot([3*i + 1 for i in range(6)], deceased_old, 'b-')
+ax.set_title('Death rate for old population')
+ax.set_xlabel('Months since March 2020')
+ax.set_ylabel('Rate per 100,000 population')
+fig.canvas.draw()
+
+fig, ax = plt.subplots(figsize=(7,3))
+ax.set_xticks([i for i in range(18)])
+ax.set_xticklabels([months[i % 12] for i in range(18)])
+ax.plot(list(range(18)),
+        [n / (nYoung*10**-5) for n in deceased_m_young], 'r--')
+ax2 = ax.twinx()
+ax2.set_ylabel('public record rate')
+ax2.plot([3*i + 1 for i in range(6)], deceased_young, 'b-')
+ax.set_title('Death rate for young population')
+ax.set_xlabel('Months since March 2020')
+ax.set_ylabel('Rate per 100,000 population')
+fig.canvas.draw()
+
 pygame.quit()
