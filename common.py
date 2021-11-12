@@ -81,9 +81,6 @@ vaccinated_fully_young = {k:v for k, v in zip([0,
                                                4*16*16*30,],
                                               NewYork.vaccinated_fully_young)}
 
-# initialize all 2500 cell locations in grid
-grid = { (i,j):None for i in range(50) for j in range(50) }
-
 # Initialize agents (700 for NY, 762 for FL)
 nOld = 229
 nYoung = 471
@@ -104,6 +101,15 @@ agents = generate_agents(nOld,nYoung,
 hospital = {}
 # {(row, col): Agent}, 30x30 grid of agents
 quarantine = {}
+
+# initialize all 2500 cell locations in grid
+grid = {}
+for i in range(50):
+    for j in range(50):
+        if (i,j) in agents:
+            grid[(i,j)] = agent[(i,j)]
+        else:
+            grid[(i,j)] = None
 
 # Draw functions
 def draw_grids():
@@ -419,7 +425,6 @@ def exit_quarantine():
     for el in delete_list:
         del quarantine[el]
     
-
 # death function
 deceased_old = [331.88, 6.497, 6.65, 96.428, 29.25, 3.217]
 deceased_young = [8.760, 0.245, 0.15, 1.327, 0.97, 0.23]
@@ -473,6 +478,40 @@ def update_agents():
         hospital[k].update(sim_time)
     for k in quarantine:
         quarantine[k].update(sim_time)
+
+# Update masking rate and vax rate
+def _update_():
+    increment = 0
+    if sim_time in full_masking_rate:
+        increment = full_masking_rate[sim_time]
+        _update_full_mask_(increment)
+     
+    first = 0; second = 0
+    if sim_time in vaccinated_1stdose_old:
+        increment = vaccinated_1stdose_old[sim_time]
+        if increment > 0:
+            _update_vax_1st_old_(increment)
+    if sim_time in vaccinated_fully_old:
+        pass
+    if sim_time in vaccinated_1stdose_young:
+        pass
+    if sim_time in vaccinated_fully_young:
+        pass
+
+def _update_full_mask_(increment):
+    pass # not wearing or sometimes wearing
+
+def _update_vax_1st_old_(increment):
+    pass # non-vax
+
+def _update_vax_full_old_(increment):
+    pass # 1st-dose
+
+def _update_vax_1st_young_(increment):
+    pass # non-vax
+
+def _update_vax_full_young_(increment):
+    pass # 1st-dose
 
 # Game loop
 speed = 'slow'

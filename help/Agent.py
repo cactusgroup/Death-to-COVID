@@ -106,8 +106,7 @@ class Agent:
                     chance -= 0.7 * chance
             
             if chance > 950:
-                print(chance)
-            if chance > 950:
+                print('infected')
                 self.status = Status.ignorant # ignorant
     
     def update(self, sim_time):
