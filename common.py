@@ -33,7 +33,8 @@ pygame.init()
 # Initialize game clock
 clock = pygame.time.Clock()
 # Initialize Tk graphics for file dialogs
-Tk().withdraw()
+tk = Tk()
+tk.withdraw()
 
 # Constants
 # screen dimensions
@@ -107,7 +108,7 @@ grid = {}
 for i in range(50):
     for j in range(50):
         if (i,j) in agents:
-            grid[(i,j)] = agent[(i,j)]
+            grid[(i,j)] = agents[(i,j)]
         else:
             grid[(i,j)] = None
 
@@ -275,8 +276,8 @@ def expose_agents():
                   if (v.status == Status.ignorant or
                       v.status == Status.contagious)}.items():
         exposees_ks = get_adjacent(k, 'agents')
-        for k in exposees_ks:
-            agents[k].expose(v)
+        for w in exposees_ks:
+            agents[w].expose(v)
             
 def move_agents():
     global agents
@@ -536,6 +537,7 @@ while True:
     # process events
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
+            tk.destroy()
             pygame.quit()
         elif event.type == pygame.MOUSEBUTTONUP:
             mouse = event.pos
@@ -639,4 +641,5 @@ ax.set_xlabel('Months since March 2020')
 ax.set_ylabel('Rate per 100,000 population')
 fig.canvas.draw()
 
+tk.destroy()
 pygame.quit()
