@@ -76,14 +76,17 @@ class Agent:
         if self.status == Status.healthy and (otherAgent.status == Status.ignorant or
                                               otherAgent.status == Status.contagious):
             chance = self.random.random() * 1000
+            print('[ Initial', chance)
             
             # 81% reduction in risk of infection by getting one dose
             # 91% reduction by getting two doses
             # https://www.cdc.gov/media/releases/2021/p0607-mrna-reduce-risks.html
             if self.vaccinated == Vax.first:
                 chance -= 0.81 * chance
+                print('first vax', chance)
             elif self.vaccinated == Vax.second:
                 chance -= 0.91 * chance
+                print('second vax', chance)
             
             # 70% reduction in risk of infection by wearing a mask for health
             # care workers.
@@ -93,20 +96,25 @@ class Agent:
             # https://pubmed.ncbi.nlm.nih.gov/33347937/
             if self.masked and not callable(self.masked):
                 chance -= 0.7 * chance
+                print('self masked', chance)
             elif callable(self.masked):
                 if self.masked():
                     chance -= 0.7 * chance
+                    print('self part masked', chance)
             
             # further 70% reduction in risk of infection if the infected person
             # is also wearing a mask
             if otherAgent.masked and not callable(otherAgent.masked):
                 chance -= 0.7 * chance
+                print('other masked', chance)
             elif callable(otherAgent.masked):
                 if otherAgent.masked():
                     chance -= 0.7 * chance
+                    print('other part masked', chance)
             
+            print('Final', chance, ']')
             if chance > 950:
-                print('infected', chance)
+                print('-- infected', chance)
                 self.status = Status.ignorant # ignorant
     
     def update(self, sim_time):

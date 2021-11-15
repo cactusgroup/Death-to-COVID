@@ -20,7 +20,7 @@ class Florida:
 
 class NewYork:
     # masking
-    full_masking_rate = [.8, .0, .02]
+    full_masking_rate = [.8, .0, .0]
     part_masking_rate = [.2]
     part_masking_percent = 0.8
     # vaccination

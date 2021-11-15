@@ -486,21 +486,34 @@ def _update_():
     if sim_time in full_masking_rate:
         increment = full_masking_rate[sim_time]
         _update_full_mask_(increment)
-     
-    first = 0; second = 0
+    
     if sim_time in vaccinated_1stdose_old:
         increment = vaccinated_1stdose_old[sim_time]
         if increment > 0:
             _update_vax_1st_old_(increment)
     if sim_time in vaccinated_fully_old:
-        pass
+        increment = vaccinated_fully_old[sim_time]
+        _update_vax_full_old_(increment)
     if sim_time in vaccinated_1stdose_young:
-        pass
+        increment = vaccinated_1stdose_young[sim_time]
+        _update_vax_1st_young_(increment)
     if sim_time in vaccinated_fully_young:
-        pass
+        increment = vaccinated_fully_young[sim_time]
+        _update_vax_full_young_(increment)
 
 def _update_full_mask_(increment):
-    pass # not wearing or sometimes wearing
+    # not wearing or sometimes wearing
+    nMore = increment * (nOld + nYoung)
+    count = 0
+    for k in {k: v for k, v in grid.items() if (v != None and
+                                                v.status != Status.deceased and
+                                                (v.masked == False or
+                                                 callable(v.masked)))}:
+        if count < nMore:
+            grid[k].masked = True
+            count += 1
+        else:
+            break
 
 def _update_vax_1st_old_(increment):
     pass # non-vax
@@ -514,6 +527,40 @@ def _update_vax_1st_young_(increment):
 def _update_vax_full_young_(increment):
     pass # 1st-dose
 
+# draw time
+months = { k:v for k,v in zip(list(range(1,13)),
+                              ['Jan', 'Feb', 'Mar',
+                               'Apr', 'May', 'Jun',
+                               'Jul', 'Aug', 'Sep',
+                               'Oct', 'Nov', 'Dec'])}
+def draw_time():
+    global year, month, day, hour, minute
+    text = f'{months[month]} {day}, {year} {hour} hours {minute} minutes'
+    GAME_FONT.render_to(screen, (520+20, 340+20+8), text, Colors.black)
+
+# update time
+year = 2020
+month = 3
+day = 1
+hour = 0
+minute = 0
+def update_time():
+    global year, month, day, hour, minute
+    minute += 15
+    if minute == 60:
+        minute = 0
+        hour += 1
+        if hour == 24:
+            hour = 0
+            day += 1
+            if day == 30 + 1:
+                day = 1
+                month += 1
+                if month == 12 + 1:
+                    month = 1
+                    year += 1
+    
+
 # Game loop
 speed = 'slow'
 sim_time = 0
@@ -526,6 +573,7 @@ while True:
     draw_agents()
     draw_hospital()
     draw_quarantine()
+    draw_time()
     
     # draw button graphics (animation control)
     make_button('Save', x=100)
@@ -559,6 +607,8 @@ while True:
     check_discharges()
     collect_deceased(sim_time)
     update_agents()
+    # _update_()
+    update_time()
     
                     
     # Finished Drawing
