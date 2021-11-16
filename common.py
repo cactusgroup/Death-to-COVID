@@ -20,7 +20,7 @@ from tkinter.filedialog import askopenfile, asksaveasfile
 
 sys.path.append(os.path.abspath('./help'))
 from AgentsGen import generate_agents
-from Constants import Status, Colors, Age
+from Constants import Status, Colors, Age, Vax
 from Images import (old_healthy, old_ignorant, old_contagious, old_infected,
                     old_low_severity, old_high_severity, old_deceased,
                     young_healthy, young_ignorant, young_contagious,
@@ -294,24 +294,41 @@ def move_agents():
 
 # Hospital functions
 def check_hospital_calls():
-    global agents, sim_time
+    global agents, quarantine, sim_time
+    
+    global hosp_old, hosp_young
+    global hospitalized_m_old, hospitalized_m_young
+    
+    if (sim_time % (4*16*30) == 0 and sim_time != 0) or sim_time == 34559:
+        print(f'Hospitaliztions Old {hosp_old} Young {hosp_young}')
+        hospitalized_m_old.append(hosp_old)
+        hospitalized_m_young.append(hosp_young)
+        hosp_old = hosp_young = 0
+    
     # Check for calls to the hospital
     delete_list = []
-    for k in {k: v for k, v in sorted(agents.items(),
+    
+    q = {('quarantine', k): v for k, v in quarantine.items()}
+    a = {('agents', k): v for k, v in agents.items()}
+    a.update(q)
+    
+    for k in {k: v for k, v in sorted(a.items(),
                                       key=lambda x: x[1].age)
               if (v.status == Status.contagious or
                   v.status == Status.infected)}:
-        status = agents[k].status
+        ag = eval(k[0]+'['+str(k[1])+']')
         
-        agents[k].status = Status.low_severity
+        status = ag.status
+        
+        ag.status = Status.low_severity
         
         if not to_hospital(k, sim_time):
-            agents[k].status = status
+            ag.status = status
             break
         else:
             delete_list.append(k)
     for el in delete_list:
-        del agents[el]
+        del eval(el[0])[el[1]]
 
 def check_discharges():
     global agents, hospital
@@ -325,7 +342,7 @@ def check_discharges():
         agents[loc] = hospital[k]
         delete_list.append(k)
     for el in delete_list:
-        del hospital[k]
+        del hospital[el]
 
 def find_bed():
     """
@@ -380,19 +397,15 @@ def to_hospital(loc, sim_time):
     global hospitalized_m_old, hospitalized_m_young
     global agents, hospital
     
-    if sim_time % (4*16*30) == 0 and sim_time != 0 or sim_time == 34559:
-        print('Hospitalized: Old', hosp_old, 'Young', hosp_young)
-        hospitalized_m_old.append(hosp_old)
-        hospitalized_m_young.append(hosp_young)
-        hosp_old = hosp_young = 0
-    
     bed = find_bed()
     if bed != None:
-        hospital[bed] = agents[loc]
+        ag = eval(loc[0]+'['+str(loc[1])+']')
         
-        if agents[loc].age == Age.old:
+        hospital[bed] = ag
+        
+        if ag.age == Age.old:
             hosp_old += 1
-        elif agents[loc].age == Age.young:
+        elif ag.age == Age.young:
             hosp_young += 1
         
         return True
@@ -402,8 +415,7 @@ def to_hospital(loc, sim_time):
 def enter_quarantine():
     global agents, quaramtine
     delete_list = []
-    for k in {k:v for k, v in agents.items() if (v.age == Age.young and
-                                                 v.status == Status.contagious and
+    for k in {k:v for k, v in agents.items() if (v.status == Status.contagious and
                                                  random.random() < 0.4)}:
         delete_list.append(k)
         loc = (random.randint(0, 29), random.randint(0, 29))
@@ -417,7 +429,7 @@ def exit_quarantine():
     global agents, quaramtine
     delete_list = []
     for k in {k:v for k, v in quarantine.items() if (v.status == Status.infected or
-                                                 v.status == Status.healthy)}:
+                                                     v.status == Status.healthy)}:
         delete_list.append(k)
         loc = (random.randint(0, 49), random.randint(0, 49))
         while loc in agents:
@@ -438,8 +450,8 @@ def collect_deceased(sim_time):
     global deceased_m_old, deceased_m_young
     global agents, hospital
     
-    if sim_time % (4*16*30) == 0 and sim_time != 0 or sim_time == 34559:
-        print('deceased: Old', dead_old, 'Young', dead_young)
+    if (sim_time % (4*16*30) == 0 and sim_time != 0) or sim_time == 34559:
+        print(f'Deceased Old {dead_old} Young {dead_young}')
         deceased_m_old.append(dead_old)
         deceased_m_young.append(dead_young)
         dead_old = dead_young = 0
@@ -469,6 +481,14 @@ def collect_deceased(sim_time):
             
     for el in hosp_del_list:
         del hospital[el]
+        
+    hosp_del_list = []
+    for loc in {k: v for k, v in grid.items()
+                if v != None and v.status == Status.deceased}:
+        hosp_del_list.append(loc)
+        
+    for el in hosp_del_list:
+        grid[el] = None
 
 # Update agents in grid, hospital, amd quarantine
 def update_agents():
@@ -506,7 +526,6 @@ def _update_full_mask_(increment):
     nMore = increment * (nOld + nYoung)
     count = 0
     for k in {k: v for k, v in grid.items() if (v != None and
-                                                v.status != Status.deceased and
                                                 (v.masked == False or
                                                  callable(v.masked)))}:
         if count < nMore:
@@ -516,16 +535,60 @@ def _update_full_mask_(increment):
             break
 
 def _update_vax_1st_old_(increment):
-    pass # non-vax
+    # non-vax
+    nMore = increment * nOld
+    count = 0
+    for k in {k: v for k, v in grid.items()
+              if (v != None and
+                  v.age == Age.old and
+                  v.vaccinated == Vax.non_vax)}:
+        if count < nMore:
+            grid[k].vaccinated = Vax.first
+            count += 1
+        else:
+            break
 
 def _update_vax_full_old_(increment):
-    pass # 1st-dose
+    # 1st-dose
+    nMore = increment * nOld
+    count = 0
+    for k in {k: v for k, v in grid.items()
+              if (v != None and
+                  v.age == Age.old and
+                  v.vaccinated == Vax.first)}:
+        if count < nMore:
+            grid[k].vaccinated = Vax.second
+            count += 1
+        else:
+            break
 
 def _update_vax_1st_young_(increment):
-    pass # non-vax
+    # non-vax
+    nMore = increment * nYoung
+    count = 0
+    for k in {k: v for k, v in grid.items()
+              if (v != None and
+                  v.age == Age.young and
+                  v.vaccinated == Vax.non_vax)}:
+        if count < nMore:
+            grid[k].vaccinated = Vax.first
+            count += 1
+        else:
+            break
 
 def _update_vax_full_young_(increment):
-    pass # 1st-dose
+    # 1st-dose
+    nMore = increment * nYoung
+    count = 0
+    for k in {k: v for k, v in grid.items()
+              if (v != None and
+                  v.age == Age.young and
+                  v.vaccinated == Vax.first)}:
+        if count < nMore:
+            grid[k].vaccinated = Vax.second
+            count += 1
+        else:
+            break
 
 # draw time
 months = { k:v for k,v in zip(list(range(1,13)),
@@ -542,7 +605,7 @@ def draw_time():
 year = 2020
 month = 3
 day = 1
-hour = 0
+hour = 7
 minute = 0
 def update_time():
     global year, month, day, hour, minute
@@ -550,8 +613,8 @@ def update_time():
     if minute == 60:
         minute = 0
         hour += 1
-        if hour == 24:
-            hour = 0
+        if hour == 23 + 1:
+            hour = 7
             day += 1
             if day == 30 + 1:
                 day = 1
@@ -607,7 +670,7 @@ while True:
     check_discharges()
     collect_deceased(sim_time)
     update_agents()
-    # _update_()
+    _update_()
     update_time()
     
                     
