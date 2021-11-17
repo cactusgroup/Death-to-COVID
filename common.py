@@ -26,7 +26,7 @@ from Images import (old_healthy, old_ignorant, old_contagious, old_infected,
                     young_healthy, young_ignorant, young_contagious,
                     young_infected, young_low_severity, young_high_severity,
                     young_deceased)
-from SimParams import NewYork, Florida
+from SimParams import NewYork, Florida, Sim2
 
 # Initialize library
 pygame.init()
@@ -52,40 +52,48 @@ pygame.display.set_caption('COVID Model')
 full_masking_rate = {k:v for k, v in zip([0,
                                           4*16*30,
                                           4*16*10*30],
-                                         NewYork.full_masking_rate)}
+                                         Florida.full_masking_rate)}
 part_masking_rate = {k:v for k, v in zip([0],
-                                         NewYork.part_masking_rate)}
-part_masking_percent = NewYork.part_masking_percent
+                                         Florida.part_masking_rate)}
+part_masking_percent = Florida.part_masking_percent
 # vaccinations
 vaccinated_1stdose_old = {k:v for k, v in zip([0,
                                                4*16*9*30 + 17*4*16,
                                                4*16*12*30 + 5*4*16,
                                                4*16*13*30,
                                                4*16*16*30],
-                                              NewYork.vaccinated_1stdose_old)}
+                                              Florida.vaccinated_1stdose_old)}
 vaccinated_fully_old = {k:v for k, v in zip([0,
                                              4*16*9*30 + 17*4*16,
                                              4*16*12*30 + 5*4*16,
                                              4*16*13*30,
                                              4*16*16*30],
-                                            NewYork.vaccinated_fully_old)}
+                                            Florida.vaccinated_fully_old)}
 vaccinated_1stdose_young = {k:v for k, v in zip([0,
                                                  4*16*9*30 + 17*4*16,
                                                  4*16*11*30 + 13*4*16,
                                                  4*16*13*30,
                                                  4*16*16*30],
-                                                NewYork.vaccinated_1stdose_young)}
+                                                Florida.vaccinated_1stdose_young)}
 vaccinated_fully_young = {k:v for k, v in zip([0,
                                                4*16*9*30 + 17*4*16,
                                                4*16*11*30 + 13*4*16,
                                                4*16*13*30,
                                                4*16*16*30,],
-                                              NewYork.vaccinated_fully_young)}
+                                              Florida.vaccinated_fully_young)}
+
+quarantine_count = Florida.quarantine_count
+
+# output statistics
+hospitalized_old = Florida.hospitalized_old
+hospitalized_young = Florida.hospitalized_young
+
+deceased_old = Florida.deceased_old
+deceased_young = Florida.deceased_young
 
 # Initialize agents (700 for NY, 762 for FL)
-nOld = 229
-nYoung = 471
-assert nOld + nYoung == 700
+nOld = Florida.nOld
+nYoung = Florida.nYoung
 
 # {(row, col): Agent}, 50x50 grid of agents
 agents = generate_agents(nOld,nYoung,
@@ -113,6 +121,16 @@ for i in range(50):
             grid[(i,j)] = None
 
 # Draw functions
+months = { k:v for k,v in zip(list(range(1,13)),
+                              ['Jan', 'Feb', 'Mar',
+                               'Apr', 'May', 'Jun',
+                               'Jul', 'Aug', 'Sep',
+                               'Oct', 'Nov', 'Dec'])}
+def draw_time():
+    global year, month, day, hour, minute
+    text = f'{months[month]} {day}, {year} {hour} hours {minute} minutes'
+    GAME_FONT.render_to(screen, (520+20, 340+20+8), text, Colors.black)
+
 def draw_grids():
     global screen
     # main grid
@@ -374,8 +392,6 @@ hosp_old = 0
 hosp_young = 0
 hospitalized_m_old = []
 hospitalized_m_young = []
-hospitalized_old = [19.15, 2.7, 2.77, 79.5, 18.0, 1.0]
-hospitalized_young = [3.9, 0.8, 1.1, 11.6, 5.8, 1.0]
 def to_hospital(loc, sim_time):
     """
     Sends an agent specified by its grid location to an open bed in the
@@ -412,21 +428,25 @@ def to_hospital(loc, sim_time):
     return False
 
 # Quarantine functions
+count = 0
 def enter_quarantine():
-    global agents, quaramtine
+    global agents, quaramtine, quarantine_count, count
     delete_list = []
-    for k in {k:v for k, v in agents.items() if (v.status == Status.contagious and
-                                                 random.random() < 0.4)}:
-        delete_list.append(k)
-        loc = (random.randint(0, 29), random.randint(0, 29))
-        while loc in quarantine:
+    for k in {k:v for k, v in agents.items() if (v.status == Status.contagious)}:
+        if count < quarantine_count:
+            delete_list.append(k)
             loc = (random.randint(0, 29), random.randint(0, 29))
-        quarantine[loc] = agents[k]
+            while loc in quarantine:
+                loc = (random.randint(0, 29), random.randint(0, 29))
+            quarantine[loc] = agents[k]
+            count += 1
+        else:
+            break
     for el in delete_list:
         del agents[el]
 
 def exit_quarantine():
-    global agents, quaramtine
+    global agents, quaramtine, count
     delete_list = []
     for k in {k:v for k, v in quarantine.items() if (v.status == Status.infected or
                                                      v.status == Status.healthy)}:
@@ -435,12 +455,11 @@ def exit_quarantine():
         while loc in agents:
             loc = (random.randint(0, 49), random.randint(0, 49))
         agents[loc] = quarantine[k]
+        count -= 1
     for el in delete_list:
         del quarantine[el]
     
 # death function
-deceased_old = [331.88, 6.497, 6.65, 96.428, 29.25, 3.217]
-deceased_young = [8.760, 0.245, 0.15, 1.327, 0.97, 0.23]
 dead_old = 0
 dead_young = 0
 deceased_m_old = []
@@ -516,7 +535,8 @@ def _update_():
         _update_vax_full_old_(increment)
     if sim_time in vaccinated_1stdose_young:
         increment = vaccinated_1stdose_young[sim_time]
-        _update_vax_1st_young_(increment)
+        if increment > 0:
+            _update_vax_1st_young_(increment)
     if sim_time in vaccinated_fully_young:
         increment = vaccinated_fully_young[sim_time]
         _update_vax_full_young_(increment)
@@ -590,17 +610,6 @@ def _update_vax_full_young_(increment):
         else:
             break
 
-# draw time
-months = { k:v for k,v in zip(list(range(1,13)),
-                              ['Jan', 'Feb', 'Mar',
-                               'Apr', 'May', 'Jun',
-                               'Jul', 'Aug', 'Sep',
-                               'Oct', 'Nov', 'Dec'])}
-def draw_time():
-    global year, month, day, hour, minute
-    text = f'{months[month]} {day}, {year} {hour} hours {minute} minutes'
-    GAME_FONT.render_to(screen, (520+20, 340+20+8), text, Colors.black)
-
 # update time
 year = 2020
 month = 3
@@ -610,7 +619,7 @@ minute = 0
 def update_time():
     global year, month, day, hour, minute
     minute += 15
-    if minute == 60:
+    if minute == 59 + 1:
         minute = 0
         hour += 1
         if hour == 23 + 1:
