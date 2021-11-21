@@ -52,20 +52,20 @@ class Agent:
         
         # https://medical.mit.edu/covid-19-updates/2020/10/exposed-to-covid-19-how-soon-contagious
         # most people who become ill develop symptons b/t 5 and 6 days after exposure
-        self.ignorant_counter = 4 * 24 * 5
+        self.ignorant_counter = 4 * 16 * 5
         
         # https://medical.mit.edu/covid-19-updates/2020/11/recovery-covid-19-how-long-someone-contagious
         # remain isolated at least 10 days from onset of symptoms
-        self.contagious_counter = 4 * 24 * 10
+        self.contagious_counter = 4 * 16 * 10
         
         # check daily whether the infection continues, abates, or kills
-        self.infected_counter = 4 * 24
+        self.infected_counter = 4 * 16
         
         # check daily to see if the low-severity hospitalization stays, worsens, or heals
-        self.low_severity_counter = 4 * 24
+        self.low_severity_counter = 4 * 16
         
         # check daily if the high-severity hospitalization stays, improves, or kills
-        self.high_severity_counter = 4 * 24
+        self.high_severity_counter = 4 * 16
 
     def expose(self, otherAgent):
         """
@@ -135,7 +135,7 @@ class Agent:
             self.ignorant_counter -= 1
             if self.ignorant_counter == 0:
                 self.status = Status.contagious # -> contagious
-                self.ignorant_counter = 4 * 24 * 5
+                self.ignorant_counter = 4 * 16 * 5
         # contagious
         elif self.status == Status.contagious:
             """
@@ -146,7 +146,7 @@ class Agent:
             self.contagious_counter -= 1
             if self.contagious_counter == 0:
                 self.status = Status.infected # -> infected
-                self.contagious_counter = 4 * 24 * 10
+                self.contagious_counter = 4 * 16 * 10
         # infected
         elif self.status == Status.infected:
             """
@@ -183,7 +183,7 @@ class Agent:
                 else:
                     self.status = Status.healthy
                 
-                self.infected_counter = 4 * 24
+                self.infected_counter = 4 * 16
         # low_severity
         elif self.status == Status.low_severity:
             """
@@ -217,7 +217,7 @@ class Agent:
                 else:
                     self.status = Status.healthy
                 
-                self.low_severity_counter = 4 * 24
+                self.low_severity_counter = 4 * 16
         # high_severity
         elif self.status == Status.high_severity:
             """
@@ -251,7 +251,7 @@ class Agent:
                 else:
                     self.status = Status.deceased
                 
-                self.high_severity_counter = 4 * 24
+                self.high_severity_counter = 4 * 16
         # deceased
         else:
             pass

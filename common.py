@@ -52,48 +52,48 @@ pygame.display.set_caption('COVID Model')
 full_masking_rate = {k:v for k, v in zip([0,
                                           4*16*30,
                                           4*16*10*30],
-                                         Florida.full_masking_rate)}
+                                         NewYork.full_masking_rate)}
 part_masking_rate = {k:v for k, v in zip([0],
-                                         Florida.part_masking_rate)}
-part_masking_percent = Florida.part_masking_percent
+                                         NewYork.part_masking_rate)}
+part_masking_percent = NewYork.part_masking_percent
 # vaccinations
 vaccinated_1stdose_old = {k:v for k, v in zip([0,
                                                4*16*9*30 + 17*4*16,
                                                4*16*12*30 + 5*4*16,
                                                4*16*13*30,
                                                4*16*16*30],
-                                              Florida.vaccinated_1stdose_old)}
+                                              NewYork.vaccinated_1stdose_old)}
 vaccinated_fully_old = {k:v for k, v in zip([0,
                                              4*16*9*30 + 17*4*16,
                                              4*16*12*30 + 5*4*16,
                                              4*16*13*30,
                                              4*16*16*30],
-                                            Florida.vaccinated_fully_old)}
+                                            NewYork.vaccinated_fully_old)}
 vaccinated_1stdose_young = {k:v for k, v in zip([0,
                                                  4*16*9*30 + 17*4*16,
                                                  4*16*11*30 + 13*4*16,
                                                  4*16*13*30,
                                                  4*16*16*30],
-                                                Florida.vaccinated_1stdose_young)}
+                                                NewYork.vaccinated_1stdose_young)}
 vaccinated_fully_young = {k:v for k, v in zip([0,
                                                4*16*9*30 + 17*4*16,
                                                4*16*11*30 + 13*4*16,
                                                4*16*13*30,
                                                4*16*16*30,],
-                                              Florida.vaccinated_fully_young)}
+                                              NewYork.vaccinated_fully_young)}
 
-quarantine_count = Florida.quarantine_count
+quarantine_count = NewYork.quarantine_count
 
 # output statistics
-hospitalized_old = Florida.hospitalized_old
-hospitalized_young = Florida.hospitalized_young
+hospitalized_old = NewYork.hospitalized_old
+hospitalized_young = NewYork.hospitalized_young
 
-deceased_old = Florida.deceased_old
-deceased_young = Florida.deceased_young
+deceased_old = NewYork.deceased_old
+deceased_young = NewYork.deceased_young
 
 # Initialize agents (700 for NY, 762 for FL)
-nOld = Florida.nOld
-nYoung = Florida.nYoung
+nOld = NewYork.nOld
+nYoung = NewYork.nYoung
 
 # {(row, col): Agent}, 50x50 grid of agents
 agents = generate_agents(nOld,nYoung,

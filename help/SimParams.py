@@ -78,7 +78,7 @@ class Florida:
 
 class NewYork:
     # masking - incremental
-    full_masking_rate = [.8, .0, .0]
+    full_masking_rate = [.4, .0, .42]
     part_masking_rate = [.2]
     part_masking_percent = 0.8
     # vaccination incremental
