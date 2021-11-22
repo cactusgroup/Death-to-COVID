@@ -24,6 +24,13 @@ class Vax:
     first = 1
     second = 2
     
+class Severity:
+    healthy = 0
+    outpatient = 1
+    inpatient = 2
+    supp_O2 = 3
+    respirator = 4
+    
 class Colors:
     bg_color = (255,255,255)
     black = (0,0,0)
@@ -65,5 +72,3 @@ class ImgPaths:
     young_high_severity = path['young_high_severity']
     young_deceased = path["young_deceased"]
     
-# font for game text
-# GAME_FONT = pygame.freetype.SysFont("Times New Roman", 12, bold=True)

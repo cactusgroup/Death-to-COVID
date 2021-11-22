@@ -28,6 +28,9 @@ class Agent:
         8 x 4
         7 6 5, with x the agent's current position.
         
+        severity can be 0 through 4 for healthy, outpatient, inpatient, supp_O2, and
+        respirator
+        
         ignorant_counter is used to count down the time that the Agent stays
         ignorant.
         
