@@ -26,7 +26,7 @@ class Sim1:
     nOld = 229
     nYoung = 471
     
-    quarantine_count = 0.5*(nOld + nYoung)
+    quarantine_count = 0
     
 class Sim2:
     # masking - incremental

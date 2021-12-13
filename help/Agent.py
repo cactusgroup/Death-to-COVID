@@ -8,7 +8,7 @@ Created on Sun Oct 10 21:43:46 2021
 
 import random
 
-from Constants import Age, Status, Vax
+from Constants import Age, Status, Vax, Severity
 
 class Agent: 
     def __init__(self, age, status, vaccinated, masked, direction):
@@ -50,6 +50,7 @@ class Agent:
         self.vaccinated = vaccinated
         self.masked = masked
         self.direction = direction
+        self.severity = Severity.healthy
         
         self.random = random.Random(random.random())
         

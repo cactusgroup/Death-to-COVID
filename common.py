@@ -26,7 +26,7 @@ from Images import (old_healthy, old_ignorant, old_contagious, old_infected,
                     young_healthy, young_ignorant, young_contagious,
                     young_infected, young_low_severity, young_high_severity,
                     young_deceased)
-from SimParams import NewYork, Florida, Sim2
+from SimParams import NewYork, Florida, Sim1, Sim2
 
 # Initialize library
 pygame.init()
@@ -52,48 +52,48 @@ pygame.display.set_caption('COVID Model')
 full_masking_rate = {k:v for k, v in zip([0,
                                           4*16*30,
                                           4*16*10*30],
-                                         NewYork.full_masking_rate)}
+                                         Sim1.full_masking_rate)}
 part_masking_rate = {k:v for k, v in zip([0],
-                                         NewYork.part_masking_rate)}
-part_masking_percent = NewYork.part_masking_percent
+                                         Sim1.part_masking_rate)}
+part_masking_percent = Sim1.part_masking_percent
 # vaccinations
 vaccinated_1stdose_old = {k:v for k, v in zip([0,
                                                4*16*9*30 + 17*4*16,
                                                4*16*12*30 + 5*4*16,
                                                4*16*13*30,
                                                4*16*16*30],
-                                              NewYork.vaccinated_1stdose_old)}
+                                              Sim1.vaccinated_1stdose_old)}
 vaccinated_fully_old = {k:v for k, v in zip([0,
                                              4*16*9*30 + 17*4*16,
                                              4*16*12*30 + 5*4*16,
                                              4*16*13*30,
                                              4*16*16*30],
-                                            NewYork.vaccinated_fully_old)}
+                                            Sim1.vaccinated_fully_old)}
 vaccinated_1stdose_young = {k:v for k, v in zip([0,
                                                  4*16*9*30 + 17*4*16,
                                                  4*16*11*30 + 13*4*16,
                                                  4*16*13*30,
                                                  4*16*16*30],
-                                                NewYork.vaccinated_1stdose_young)}
+                                                Sim1.vaccinated_1stdose_young)}
 vaccinated_fully_young = {k:v for k, v in zip([0,
                                                4*16*9*30 + 17*4*16,
                                                4*16*11*30 + 13*4*16,
                                                4*16*13*30,
                                                4*16*16*30,],
-                                              NewYork.vaccinated_fully_young)}
+                                              Sim1.vaccinated_fully_young)}
 
-quarantine_count = NewYork.quarantine_count
+quarantine_count = Sim1.quarantine_count
 
 # output statistics
-hospitalized_old = NewYork.hospitalized_old
-hospitalized_young = NewYork.hospitalized_young
+hospitalized_old = Sim1.hospitalized_old
+hospitalized_young = Sim1.hospitalized_young
 
-deceased_old = NewYork.deceased_old
-deceased_young = NewYork.deceased_young
+deceased_old = Sim1.deceased_old
+deceased_young = Sim1.deceased_young
 
 # Initialize agents (700 for NY, 762 for FL)
-nOld = NewYork.nOld
-nYoung = NewYork.nYoung
+nOld = Sim1.nOld
+nYoung = Sim1.nYoung
 
 # {(row, col): Agent}, 50x50 grid of agents
 agents = generate_agents(nOld,nYoung,
